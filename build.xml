@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="name-of-project" default="build" basedir=".">
+  <fileset dir="${project.basedir}" id="phpsrc">
+    <include name="**/*.php" />
+    <include name="**/*.inc" />
+  </fileset>
+  
+  <fileset dir="${project.basedir}" id="jssrc">
+    <include name="**/*.js" />
+  </fileset>
+  
+  <target name="clean"
+          description="Clean up and create artifact directories">
+    <delete dir="${project.basedir}/build/api"/>
+    <delete dir="${project.basedir}/build/code-browser"/>
+    <delete dir="${project.basedir}/build/coverage"/>
+    <delete dir="${project.basedir}/build/logs"/>
+    <delete dir="${project.basedir}/build/pdepend"/>
+
+    <mkdir dir="${project.basedir}/build/api"/>
+    <mkdir dir="${project.basedir}/build/code-browser"/>
+    <mkdir dir="${project.basedir}/build/coverage"/>
+    <mkdir dir="${project.basedir}/build/logs"/>
+    <mkdir dir="${project.basedir}/build/pdepend"/>
+  </target>
+
+  <target name="checkphp"
+          description="Check PHP files for syntax errors using PHPLint">
+    <phplint>
+      <fileset refid="phpsrc" />
+    </phplint>
+  </target>
+
+  <target name="checkjs"
+          description="Check Javascript files using JSlint">
+    <jsllint>
+      <fileset refid="jssrc" />
+    </jsllint>
+  </target>
+
+  <target name="phpunit"
+          description="Run unit tests using PHPUnit and generates junit.xml and clover.xml">
+    <!--<phpunit codecoverage="true">-->
+    <phpunit>
+      <formatter type="xml" />
+    </phpunit>
+  </target>
+
+  <target name="pdepend"
+          description="Generate jdepend.xml and software metrics charts using PHP_Depend">
+    <phpdepend>
+      <fileset refid="phpsrc" />
+      <logger type="jdepend-xml" outfile="${project.basedir}/build/logs/jdepend.xml"/>
+      <logger type="jdepend-chart" outfile="${project.basedir}/build/pdepend/dependencies.svg"/>
+      <logger type="overview-pyramid" outfile="${project.basedir}/build/pdepend/overview-pyramid.svg"/>
+    </phpdepend>
+  </target>
+
+  <target name="phpmd"
+          description="Generate pmd.xml using PHPMD">
+    <phpmd>
+      <fileset refid="phpsrc" />
+      <formatter type="xml" outfile="${project.basedir}/build/logs/pmd.xml"/>
+    </phpmd>
+  </target>
+
+  <target name="phpcpd"
+          description="Generate pmd-cpd.xml using PHPCPD">
+    <phpcpd>
+      <fileset refid="phpsrc" />
+      <formatter type="pmd" outfile="${project.basedir}/build/logs/pmd-cpd.xml"/>
+    </phpcpd>
+  </target>
+
+  <!-- There is a phploc task for Phing: https://github.com/raphaelstolt/phploc-phing. We should use this instead-->
+  <target name="phploc"
+          description="Generate phploc.csv">
+    <exec command="phploc --log-csv ${project.basedir}/build/logs/phploc.csv 
+                          --suffixes php,inc 
+                          ${project.basedir}" 
+          logoutput="true"/>
+  </target>
+
+  <!-- There is no Phing task for PHP Codesniffer in v2.4.6. It's coming for v2.5 -->
+  <target name="phpcs"
+          description="Generate checkstyle.xml using PHP_CodeSniffer">
+    <exec command="phpcs --report=checkstyle 
+                         --report-file=${project.basedir}/build/logs/checkstyle.xml 
+                         --standard=Zend 
+                         --extensions=php,inc
+                         ${project.basedir}"       
+          logoutput="true" />
+  </target>
+
+  <target name="phpdoc"
+          description="Generate API documentation using PHPDocumentor">
+    <phpdoc title="API Documentation"
+            destdir="${project.basedir}/build/api"
+            sourcecode="php"
+            output="HTML:Smarty:PHP">
+      <fileset refid="phpsrc" />
+    </phpdoc>
+  </target>
+
+  <!-- There is not Phing task for PHP CodeBrowser so do a plain execute -->
+  <target name="phpcb"
+          description="Aggregate tool output with PHP_CodeBrowser">
+    <exec command="phpcb  --log ${project.basedir}/build/logs 
+                          --source ${project.basedir} 
+                          --output ${project.basedir}/build/code-browser" 
+          logoutput="true" />
+  </target>
+
+  <target name="build" depends="clean,
+                                checkphp,
+                                phpunit,
+                                pdepend,
+                                phpmd,
+                                phpcpd,
+                                phpcs,
+                                phploc,
+                                phpdoc,
+                                phpcb"/>
+
+</project>
