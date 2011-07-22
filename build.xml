@@ -1,13 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="name-of-project" default="build" basedir=".">
-  <fileset dir="${project.basedir}" id="phpsrc">
+<project name="statisten" default="build" basedir=".">
+  <!-- Clone https://github.com/raphaelstolt/phploc-phing.git and set the value to the location -->
+  <property name="phploc.dir" value="/Users/kasper/Documents/Code/phploc-phing/" />
+  <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location -->
+  <property name="phpcs.standard" value="/Users/kasper/Documents/Code/drupalcs/ruleset.xml" />
+
+
+
+  <!-- Add the custom phploc task -->
+  <taskdef name="phploc" classname="PHPLocTask" classpath="${phploc.dir}" />
+
+  <property name="project.sitesdir" value="${project.basedir}/sites/all" />
+  
+  <!-- Define pattern sets for future reference -->
+  <patternset id="php">
+    <include name="**/*.php" />
+    <include name="**/*.inc" />
+  </patternset>
+
+  <patternset id="js">
+    <include name="**/*.js" />
+    <exclude name="**/*.min.js" />  
+  </patternset>
+
+  <patternset id="contrib">
+    <exclude name="**/contrib/**/*.*" />
+    <exclude name="**/libraries/**/*.*" />
+  </patternset>
+
+  <patternset id="generated">
+    <exclude name="**/*.features.*" />
+    <exclude name="**/*.pages_default.inc" />
+    <exclude name="**/*.strongarm.inc" />
+  </patternset>
+  
+  <!-- Define file sets for future reference -->
+  <fileset  id="src.php" dir="${project.basedir}">
     <include name="**/*.php" />
     <include name="**/*.inc" />
   </fileset>
+
+  <fileset dir="${project.sitesdir}" id="src.php.custom">
+    <patternset refid="php"/>
+    <patternset refid="contrib"/>
+    <patternset refid="generated"/>
+  </fileset>
   
-  <fileset dir="${project.basedir}" id="jssrc">
-    <include name="**/*.js" />
+  <fileset dir="${project.basedir}" id="src.js">
+    <patternset refid="js" />
+  </fileset>
+
+  <fileset dir="${project.sitesdir}" id="src.js.custom">
+    <patternset refid="js" />
+    <patternset refid="contrib" />
   </fileset>
   
   <target name="clean"
@@ -26,18 +72,33 @@
   </target>
 
   <target name="checkphp"
-          description="Check PHP files for syntax errors using PHPLint">
+          description="Check all PHP files for syntax errors using PHPLint">
     <phplint>
-      <fileset refid="phpsrc" />
+      <fileset refid="src.php" />
+    </phplint>
+  </target>
+
+  <target name="checkcustomphp"
+          description="Check custom PHP files for syntax errors using PHPLint">
+    <phplint>
+      <fileset refid="src.php.custom" />
     </phplint>
   </target>
 
   <target name="checkjs"
-          description="Check Javascript files using JSlint">
-    <jsllint>
-      <fileset refid="jssrc" />
+          description="Check all Javascript files using JSlint">
+    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.basedir}/build/logs/jslint.txt">
+      <fileset refid="src.js" />
     </jsllint>
   </target>
+
+  <target name="checkcustomjs"
+          description="Check custom Javascript files using JSlint">
+    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.basedir}/build/logs/jslint.txt">
+      <fileset refid="src.js.custom" />
+    </jsllint>
+  </target>
+
 
   <target name="phpunit"
           description="Run unit tests using PHPUnit and generates junit.xml and clover.xml">
@@ -50,7 +111,7 @@
   <target name="pdepend"
           description="Generate jdepend.xml and software metrics charts using PHP_Depend">
     <phpdepend>
-      <fileset refid="phpsrc" />
+      <fileset refid="src.php.custom" />
       <logger type="jdepend-xml" outfile="${project.basedir}/build/logs/jdepend.xml"/>
       <logger type="jdepend-chart" outfile="${project.basedir}/build/pdepend/dependencies.svg"/>
       <logger type="overview-pyramid" outfile="${project.basedir}/build/pdepend/overview-pyramid.svg"/>
@@ -60,7 +121,7 @@
   <target name="phpmd"
           description="Generate pmd.xml using PHPMD">
     <phpmd>
-      <fileset refid="phpsrc" />
+      <fileset refid="src.php.custom" />
       <formatter type="xml" outfile="${project.basedir}/build/logs/pmd.xml"/>
     </phpmd>
   </target>
@@ -68,28 +129,33 @@
   <target name="phpcpd"
           description="Generate pmd-cpd.xml using PHPCPD">
     <phpcpd>
-      <fileset refid="phpsrc" />
+      <fileset refid="src.php.custom" />
       <formatter type="pmd" outfile="${project.basedir}/build/logs/pmd-cpd.xml"/>
     </phpcpd>
   </target>
-
-  <!-- There is a phploc task for Phing: https://github.com/raphaelstolt/phploc-phing. We should use this instead-->
+  
   <target name="phploc"
-          description="Generate phploc.csv">
-    <exec command="phploc --log-csv ${project.basedir}/build/logs/phploc.csv 
-                          --suffixes php,inc 
-                          ${project.basedir}" 
-          logoutput="true"/>
+          description="Generate phploc.csv using PHPLOC">
+    <tstamp>
+      <format property="check.date.time" pattern="%Y%m%d-%H%M%S" locale="en_US"/>
+    </tstamp>
+    <phploc reportType="csv" 
+            reportName="phploc" 
+            reportDirectory="${project.basedir}/build/logs/" countTests="true">
+      <fileset refid="src.php.custom"/>
+    </phploc>
   </target>
 
-  <!-- There is no Phing task for PHP Codesniffer in v2.4.6. It's coming for v2.5 -->
+  <!-- There is no Phing task for PHP Codesniffer in v2.4.6. It's coming for v2.5.
+       Execute while we wait.-->
   <target name="phpcs"
           description="Generate checkstyle.xml using PHP_CodeSniffer">
     <exec command="phpcs --report=checkstyle 
                          --report-file=${project.basedir}/build/logs/checkstyle.xml 
-                         --standard=Zend 
+                         --standard=${phpcs.standard} 
                          --extensions=php,inc
-                         ${project.basedir}"       
+                         --ignore=*/contrib/*,*/*.features.*,*/*.pages_default.*,*/*strongarm.inc
+                         ${project.sitesdir}"       
           logoutput="true" />
   </target>
 
@@ -99,11 +165,11 @@
             destdir="${project.basedir}/build/api"
             sourcecode="php"
             output="HTML:Smarty:PHP">
-      <fileset refid="phpsrc" />
+      <fileset refid="src.php" />
     </phpdoc>
   </target>
 
-  <!-- There is not Phing task for PHP CodeBrowser so do a plain execute -->
+  <!-- There is no Phing task for PHP CodeBrowser so do a plain execute -->
   <target name="phpcb"
           description="Aggregate tool output with PHP_CodeBrowser">
     <exec command="phpcb  --log ${project.basedir}/build/logs 
@@ -112,14 +178,18 @@
           logoutput="true" />
   </target>
 
-  <target name="build" depends="clean,
-                                checkphp,
-                                phpunit,
-                                pdepend,
-                                phpmd,
-                                phpcpd,
-                                phpcs,
-                                phploc,
+  <target name="analyze" depends="clean,
+                                  checkcustomphp,
+                                  checkcustomjs,
+                                  phpunit,
+                                  pdepend,
+                                  phpmd,
+                                  phpcpd,
+                                  phpcs,
+                                  phploc"/>
+
+
+  <target name="build" depends="analyze,
                                 phpdoc,
                                 phpcb"/>
 
