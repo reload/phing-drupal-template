@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="statisten" default="build" basedir=".">
+<project name="name-of-project" default="build" basedir=".">
   <!-- Clone https://github.com/raphaelstolt/phploc-phing.git and set the value to the location -->
   <property name="phploc.dir" value="/Users/kasper/Documents/Code/phploc-phing/" />
   <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location -->
