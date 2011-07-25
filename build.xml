@@ -16,6 +16,9 @@
   <!-- Define pattern sets for future reference -->
   <patternset id="php">
     <include name="**/*.php" />
+    <include name="**/*.module" />
+    <include name="**/*.install" />
+    <include name="**/*.profile" />
     <include name="**/*.inc" />
   </patternset>
 
