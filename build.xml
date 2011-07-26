@@ -11,12 +11,12 @@
   <property name="projects.custom" value="troupe " />
 
   <!-- Clone https://github.com/raphaelstolt/phploc-phing.git and set the value to the location -->
-  <property name="phploc.dir" value="/var/lib/jenkins/phing/phploc-phing/" />
+  <property name="phploc.dir" value="/Users/kasper/Documents/Code/phploc-phing/" />
   <!-- Clone http://git.drupal.org/sandbox/mongolito404/1157574.git and set the value to the location -->
-  <property name="phingdrush.dir" value="/var/lib/jenkins/phing/phing-drush-task/" />
+  <property name="phingdrush.dir" value="/Users/kasper/Documents/Code/phing_drush_task/" />
   <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location 
        NB: This is only required if using the phpcs target / PHP_Codesniffer -->
-  <property name="phpcs.standard" value="/var/lib/jenkins/phing/drupalcs/ruleset.xml" />
+  <property name="phpcs.standard" value="/Users/kasper/Documents/Code/drupalcs/ruleset.xml" />
 
 
 
@@ -77,7 +77,7 @@
   <target name="clean"
           description="Clean up and create artifact directories">
     <delete dir="${project.basedir}/build"/>
-    <delete dir="${project.basedir}/datsbase.sqlitr"/>
+    <delete dir="${project.basedir}/database.sqlite"/>
     <!-- Remove leftover Drupal simpletest databases -->
     <delete>
       <fileset dir="${project.basedir}">
@@ -206,7 +206,6 @@
       <formatter type="xml" />
     </phpunit>
   </target>
-
   
   <!-- PHP Depend is of little value to most Drupal projects since they use little PHP -->
   <target name="pdepend"
@@ -222,10 +221,10 @@
 
   <target name="phpmd"
           description="Generate pmd.xml using PHPMD">
-    <phpmd>
+    <phpmd rulesets="codesize,naming,design">
       <!-- We do not use the unusedcode ruleset as Drupal hook implementations usually
            are declared with all arguements but may not use them all. -->
-      <fileset refid="src.php.custom" rulesets="codesize,naming,design" />
+      <fileset refid="src.php.custom" />
       <formatter type="xml" outfile="${project.basedir}/build/logs/pmd.xml"/>
     </phpmd>
   </target>
@@ -246,7 +245,7 @@
     <phploc reportType="csv" 
             reportName="phploc" 
             reportDirectory="${project.basedir}/build/logs/" countTests="true">
-      <fileset refid="src.php.custom"/>
+      <fileset refid="src.php.custom" />
     </phploc>
   </target>
 
