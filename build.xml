@@ -14,7 +14,8 @@
   <property name="phploc.dir" value="/var/lib/jenkins/phing/phploc-phing/" />
   <!-- Clone http://git.drupal.org/sandbox/mongolito404/1157574.git and set the value to the location -->
   <property name="phingdrush.dir" value="/var/lib/jenkins/phing/phing-drush-task/" />
-  <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location -->
+  <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location 
+       NB: This is only required if using the phpcs target / PHP_Codesniffer -->
   <property name="phpcs.standard" value="/var/lib/jenkins/phing/drupalcs/ruleset.xml" />
 
 
@@ -252,7 +253,7 @@
   <target name="phpcs"
           description="Generate checkstyle.xml using PHP_CodeSniffer">
     <exec command="phpcs --report=checkstyle 
-                         --report-file=${project.basedir}/build/logs/checkstyle.xml 
+                         --report-file=${project.basedir}/build/logs/codesniffer-checkstyle.xml 
                          --standard=${phpcs.standard} 
                          --extensions=php,inc
                          --ignore=*/contrib/*,*/*.features.*,*/*.pages_default.*,*/*strongarm.inc
@@ -323,7 +324,7 @@
       <!-- Review additional modules which do not match the prefix -->
       <param>${projects.custom}</param>
     </drush>
-    <append destFile="${project.basedir}/build/logs/coder-checkstyle.xml" text="${xml}" />
+    <append destFile="${project.basedir}/build/logs/checkstyle.xml" text="${xml}" />
   </target>
 
   <target name="simpletest"
@@ -372,7 +373,6 @@
   <target name="analyze" depends="clean,
                                   phpmd,
                                   phpcpd,
-                                  phpcs,
                                   coderreview,
                                   phploc" />
 
