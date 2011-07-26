@@ -11,11 +11,11 @@
   <property name="projects.custom" value="troupe " />
 
   <!-- Clone https://github.com/raphaelstolt/phploc-phing.git and set the value to the location -->
-  <property name="phploc.dir" value="/Users/kasper/Documents/Code/phploc-phing/" />
+  <property name="phploc.dir" value="/var/lib/jenkins/phing/phploc-phing/" />
   <!-- Clone http://git.drupal.org/sandbox/mongolito404/1157574.git and set the value to the location -->
-  <property name="phingdrush.dir" value="/Users/kasper/Documents/Code/phing_drush_task/" />
+  <property name="phingdrush.dir" value="/var/lib/jenkins/phing/phing-drush-task/" />
   <!-- Clone https://github.com/ericduran/drupalcs.git and set the value to the location -->
-  <property name="phpcs.standard" value="/Users/kasper/Documents/Code/drupalcs/ruleset.xml" />
+  <property name="phpcs.standard" value="/var/lib/jenkins/phing/drupalcs/ruleset.xml" />
 
 
 
