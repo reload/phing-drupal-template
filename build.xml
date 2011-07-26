@@ -125,7 +125,7 @@
       <fileset refid="src.php.custom"/>
     </foreach>
     <loadfile property="debuglines" file="${php.debugfile}" />
-    <!-- Break if debug code is detected! -->
+    <!-- Break if debug code is detected -->
     <if>
       <not>
         <equals arg1="${debuglines}" arg2="" />
@@ -315,7 +315,7 @@
       <param>style</param>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${projects.prefix}</param>
-      <!-- Review additional modules which to not match the prefix -->
+      <!-- Review additional modules which do not match the prefix -->
       <param>${projects.custom}</param>
     </drush>
     <delete file="${project.basedir}/build/logs/coder-checkstyle.xml" />
