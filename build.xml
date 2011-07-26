@@ -85,8 +85,6 @@
     </delete>
     
     <mkdir dir="${project.basedir}/build"/>
-    <mkdir dir="${project.basedir}/build/api"/>
-    <mkdir dir="${project.basedir}/build/code-browser"/>
     <mkdir dir="${project.basedir}/build/coverage"/>
     <mkdir dir="${project.basedir}/build/logs"/>
     <mkdir dir="${project.basedir}/build/tests"/>
@@ -341,6 +339,7 @@
 
   <target name="phpdoc"
           description="Generate API documentation using PHPDocumentor">
+    <mkdir dir="${project.basedir}/build/api"/>
     <phpdoc title="API Documentation"
             destdir="${project.basedir}/build/api"
             sourcecode="php"
@@ -352,6 +351,7 @@
   <!-- There is no Phing task for PHP CodeBrowser so do a plain execute -->
   <target name="phpcb"
           description="Aggregate tool output with PHP_CodeBrowser">
+    <mkdir dir="${project.basedir}/build/code-browser"/>
     <exec command="phpcb  --log ${project.basedir}/build/logs 
                           --source ${project.basedir} 
                           --output ${project.basedir}/build/code-browser" 
