@@ -373,13 +373,16 @@
                                   phpcpd,
                                   phpcs,
                                   coderreview,
-                                  phploc"/>
+                                  phploc" />
 
 
   <target name="build" depends="clean,
                                 verify,
-                                analyze,
-                                phpdoc,
-                                phpcb"/>
+                                analyze" />
+                                <!-- No documentation and code browser generation for now.
+                                     The processes eat up memory and build time and are largely
+                                     obsolete when using GitHub -->
+                                <!-- phpdoc, 
+                                     phpcb"/> -->
 
 </project>
