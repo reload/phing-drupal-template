@@ -88,7 +88,6 @@
     <mkdir dir="${project.basedir}/build/coverage"/>
     <mkdir dir="${project.basedir}/build/logs"/>
     <mkdir dir="${project.basedir}/build/tests"/>
-    <mkdir dir="${project.basedir}/build/pdepend"/>
   </target>
 
   <target name="checkphp"
@@ -207,8 +206,11 @@
     </phpunit>
   </target>
 
+  
+  <!-- PHP Depend is of little value to most Drupal projects since they use little PHP -->
   <target name="pdepend"
           description="Generate jdepend.xml and software metrics charts using PHP_Depend">
+    <mkdir dir="${project.basedir}/build/pdepend" />
     <phpdepend>
       <fileset refid="src.php.custom" />
       <logger type="jdepend-xml" outfile="${project.basedir}/build/logs/jdepend.xml"/>
@@ -368,7 +370,6 @@
                                  <!-- simpletest"/>-->
 
   <target name="analyze" depends="clean,
-                                  pdepend,
                                   phpmd,
                                   phpcpd,
                                   phpcs,
