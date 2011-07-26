@@ -75,16 +75,21 @@
   
   <target name="clean"
           description="Clean up and create artifact directories">
-    <delete dir="${project.basedir}/build/api"/>
-    <delete dir="${project.basedir}/build/code-browser"/>
-    <delete dir="${project.basedir}/build/coverage"/>
-    <delete dir="${project.basedir}/build/logs"/>
-    <delete dir="${project.basedir}/build/pdepend"/>
-
+    <delete dir="${project.basedir}/build"/>
+    <delete dir="${project.basedir}/datsbase.sqlitr"/>
+    <!-- Remove leftover Drupal simpletest databases -->
+    <delete>
+      <fileset dir="${project.basedir}">
+        <include name="database.sqlite-simpletest*"/>
+      </fileset>
+    </delete>
+    
+    <mkdir dir="${project.basedir}/build"/>
     <mkdir dir="${project.basedir}/build/api"/>
     <mkdir dir="${project.basedir}/build/code-browser"/>
     <mkdir dir="${project.basedir}/build/coverage"/>
     <mkdir dir="${project.basedir}/build/logs"/>
+    <mkdir dir="${project.basedir}/build/tests"/>
     <mkdir dir="${project.basedir}/build/pdepend"/>
   </target>
 
@@ -264,7 +269,7 @@
 
   <target name="coderreview"
           description="Review code using Drupal Coder module"
-          depends="siteinstall">
+          depends="siteinstall,clean">
     <drush command="pm-download" assume="yes">
       <!-- Currently only dev versions of Coder supports returning code review
            results in Checkstyle XML format -->
@@ -318,21 +323,19 @@
       <!-- Review additional modules which do not match the prefix -->
       <param>${projects.custom}</param>
     </drush>
-    <delete file="${project.basedir}/build/logs/coder-checkstyle.xml" />
     <append destFile="${project.basedir}/build/logs/coder-checkstyle.xml" text="${xml}" />
   </target>
 
-
   <target name="simpletest"
-          description="Review code using Drupal Coder module"
-          depends="siteinstall">
+          description="Run all unit tests"
+          depends="clean,siteinstall">
     <drush command="pm-enable" assume="yes">
       <param>simpletest</param>
     </drush>
     <drush command="test-run" assume="yes">
       <option name="all" />
       <!-- XML output requires a drush 4.5 or this patch http://drupal.org/node/1109408 -->
-      <option name="xml" />
+      <option name="xml">${project.basedir}/build/tests</option>
     </drush>
   </target>
 
@@ -355,12 +358,16 @@
           logoutput="true" />
   </target>
 
+  <target name="verify" depends="clean,
+                                 checkcustomphp,
+                                 checkcustomjs,
+                                 checkdebugphp,
+                                 checkdebugjs" />
+                                 <!-- No simpletest for now until we figure out how to speed
+                                      up tests and/or only run for custom code -->
+                                 <!-- simpletest"/>-->
+
   <target name="analyze" depends="clean,
-                                  checkcustomphp,
-                                  checkcustomjs,
-                                  checkdebugphp,
-                                  checkdebugjs,
-                                  phpunit,
                                   pdepend,
                                   phpmd,
                                   phpcpd,
@@ -370,9 +377,8 @@
 
 
   <target name="build" depends="clean,
+                                verify,
                                 analyze,
-                                checkphp,
-                                checkjs,
                                 phpdoc,
                                 phpcb"/>
 
