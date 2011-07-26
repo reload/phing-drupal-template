@@ -223,7 +223,9 @@
   <target name="phpmd"
           description="Generate pmd.xml using PHPMD">
     <phpmd>
-      <fileset refid="src.php.custom" />
+      <!-- We do not use the unusedcode ruleset as Drupal hook implementations usually
+           are declared with all arguements but may not use them all. -->
+      <fileset refid="src.php.custom" rulesets="codesize,naming,design" />
       <formatter type="xml" outfile="${project.basedir}/build/logs/pmd.xml"/>
     </phpmd>
   </target>
