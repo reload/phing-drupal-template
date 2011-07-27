@@ -326,6 +326,24 @@
       <param>${projects.custom}</param>
     </drush>
     <append destFile="${project.basedir}/build/logs/checkstyle.xml" text="${xml}" />
+    <!-- Modify Coder Review XML output to match CheckStyle XML report format
+         Convert root element from coderreview to checkstyle
+         Convert severities from Drupal minor/normal/critical to CheckStyle info/warning/error 
+         This could probably be handled better using an XSLT. Use string replacement for now.
+         Filter chains does not seem to work in append so we load the file again.-->
+    <loadfile property="xml" file="${project.basedir}/build/logs/checkstyle.xml">
+      <filterchain>
+        <replaceregexp>
+          <regexp pattern="coderreview" replace="checkstyle" />
+          <regexp pattern='severity="minor"' replace='severity="info"' />
+          <regexp pattern='severity="normal"' replace='severity="warning"' />
+          <regexp pattern='severity="critical"' replace='severity="error"' />
+        </replaceregexp>
+      </filterchain>
+    </loadfile>
+    <!-- Now we have transformed the content so delete the old version and save again. -->
+    <delete file="${project.basedir}/build/logs/checkstyle.xml" />
+    <append destFile="${project.basedir}/build/logs/checkstyle.xml" text="${xml}" />
   </target>
 
   <target name="simpletest"
