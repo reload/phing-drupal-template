@@ -26,8 +26,14 @@
   <!-- Add the custom drush task -->
   <taskdef name="drush" classname="DrushTask" classpath="${phingdrush.dir}" />
 
+  <!-- Define working directories -->
   <property name="project.sitesdir" value="${project.basedir}/sites/all" />
-  
+  <property name="project.builddir" value="${project.basedir}/build" />
+  <property name="project.codedir" value="${project.builddir}/code" />
+  <property name="project.coveragedir" value="${project.builddir}/coverage" />
+  <property name="project.logdir" value="${project.builddir}/logs" />
+  <property name="project.testdir" value="${project.builddir}/tests" />
+
   <!-- Define pattern sets for future reference -->
   <patternset id="php">
     <include name="**/*.php" />
@@ -85,11 +91,12 @@
         <include name="database.sqlite-simpletest*"/>
       </fileset>
     </delete>
-    
-    <mkdir dir="${project.basedir}/build"/>
-    <mkdir dir="${project.basedir}/build/coverage"/>
-    <mkdir dir="${project.basedir}/build/logs"/>
-    <mkdir dir="${project.basedir}/build/tests"/>
+
+    <mkdir dir="${project.builddir}"/>
+    <mkdir dir="${project.codedir}"/>
+    <mkdir dir="${project.coveragedir}"/>
+    <mkdir dir="${project.logdir}"/>
+    <mkdir dir="${project.testdir}"/>
   </target>
 
   <target name="checkphp"
@@ -108,21 +115,21 @@
 
   <target name="checkjs"
           description="Check all Javascript files using JSlint">
-    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.basedir}/build/logs/jslint.txt">
+    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.logdir}/jslint.txt">
       <fileset refid="src.js" />
     </jsllint>
   </target>
 
   <target name="checkcustomjs"
           description="Check custom Javascript files using JSlint">
-    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.basedir}/build/logs/jslint.txt">
+    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.logdir}/jslint.txt">
       <fileset refid="src.js.custom" />
     </jsllint>
   </target>
  
   <target name="checkdebugphp"
           description="Check custom PHP code for debug statements">
-    <property name="php.debugfile" value="${project.basedir}/build/logs/debug_php.txt" />
+    <property name="php.debugfile" value="${project.logdir}/debug_php.txt" />
     <delete file="${php.debugfile}"/>
     <append text="" destFile="${php.debugfile}"/>
     <foreach target="checkdebugphpfile" param="filename" absparam="absfilename">
@@ -155,14 +162,14 @@
       </not>
       <then>
         <append text="${filename}:${line.separator}${debuglines}${line.separator}${line.separator}"
-                destFile="${project.basedir}/build/logs/debug_php.txt"/>
+                destFile="${project.logdir}/debug_php.txt"/>
       </then>
     </if>
   </target>
 
   <target name="checkdebugjs"
           description="Check custom Javascript code for debug statements">
-    <property name="js.debugfile" value="${project.basedir}/build/logs/debug_js.txt" />
+    <property name="js.debugfile" value="${project.logdir}/debug_js.txt" />
     <delete file="${js.debugfile}"/>
     <append text="" destFile="${js.debugfile}"/>
     <foreach target="checkdebugjsfile" param="filename" absparam="absfilename">
@@ -195,7 +202,7 @@
       </not>
       <then>
         <append text="${filename}:${line.separator}${debuglines}${line.separator}${line.separator}"
-                destFile="${project.basedir}/build/logs/debug_js.txt"/>
+                destFile="${project.logdir}/debug_js.txt"/>
       </then>
     </if>
   </target>
@@ -211,12 +218,12 @@
   <!-- PHP Depend is of little value to most Drupal projects since they use little PHP -->
   <target name="pdepend"
           description="Generate jdepend.xml and software metrics charts using PHP_Depend">
-    <mkdir dir="${project.basedir}/build/pdepend" />
+    <mkdir dir="${project.buildir}/pdepend" />
     <phpdepend>
       <fileset refid="src.php.custom" />
-      <logger type="jdepend-xml" outfile="${project.basedir}/build/logs/jdepend.xml"/>
-      <logger type="jdepend-chart" outfile="${project.basedir}/build/pdepend/dependencies.svg"/>
-      <logger type="overview-pyramid" outfile="${project.basedir}/build/pdepend/overview-pyramid.svg"/>
+      <logger type="jdepend-xml" outfile="${project.logdir}/jdepend.xml"/>
+      <logger type="jdepend-chart" outfile="${project.buildir}/pdepend/dependencies.svg"/>
+      <logger type="overview-pyramid" outfile="${project.buildir}/pdepend/overview-pyramid.svg"/>
     </phpdepend>
   </target>
 
@@ -226,7 +233,7 @@
       <!-- We do not use the unusedcode ruleset as Drupal hook implementations usually
            are declared with all arguements but may not use them all. -->
       <fileset refid="src.php.custom" />
-      <formatter type="xml" outfile="${project.basedir}/build/logs/pmd.xml"/>
+      <formatter type="xml" outfile="${project.logdir}/pmd.xml"/>
     </phpmd>
   </target>
 
@@ -234,7 +241,7 @@
           description="Generate pmd-cpd.xml using PHPCPD">
     <phpcpd>
       <fileset refid="src.php.custom" />
-      <formatter type="pmd" outfile="${project.basedir}/build/logs/pmd-cpd.xml"/>
+      <formatter type="pmd" outfile="${project.logdir}/pmd-cpd.xml"/>
     </phpcpd>
   </target>
   
@@ -245,7 +252,7 @@
     </tstamp>
     <phploc reportType="csv" 
             reportName="phploc" 
-            reportDirectory="${project.basedir}/build/logs/" countTests="true">
+            reportDirectory="${project.logdir}" countTests="true">
       <fileset refid="src.php.custom" />
     </phploc>
   </target>
@@ -255,7 +262,7 @@
   <target name="phpcs"
           description="Generate checkstyle.xml using PHP_CodeSniffer">
     <exec command="phpcs --report=checkstyle 
-                         --report-file=${project.basedir}/build/logs/codesniffer-checkstyle.xml 
+                         --report-file=${project.logdir}/codesniffer-checkstyle.xml 
                          --standard=${phpcs.standard} 
                          --extensions=php,inc
                          --ignore=*/contrib/*,*/*.features.*,*/*.pages_default.*,*/*strongarm.inc
@@ -283,7 +290,7 @@
          This is needed as there is no other way to grab the result and 
          write it to a file. -->
     <httpget url="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"
-            dir="${project.sitesdir}/modules/contrib/coder"/>
+             dir="${project.sitesdir}/modules/contrib/coder"/>
     <patch patchfile="${project.sitesdir}/modules/contrib/coder/coder-review-checkstyle-xml-fix.patch" 
            dir="${project.sitesdir}/modules/contrib/coder/coder_review"
            haltonfailure="true" />
@@ -298,8 +305,8 @@
     <!-- The project list is piped through a file as this seems to be
          the only way to handle filtering of values in Phing. -->
     <delete file="${project.basedir}/build/logs/projects.txt" />
-    <append text="${projects}" destFile="${project.basedir}/build/logs/projects.txt" />
-    <loadfile property="projects.prefix" file="${project.basedir}/build/logs/projects.txt">
+    <append text="${projects}" destFile="${project.logdir}/projects.txt" />
+    <loadfile property="projects.prefix" file="${project.logdir}/projects.txt">
       <filterchain>
         <linecontainsregexp>
           <regexp pattern="^${projects.prefix}_" />
@@ -326,13 +333,14 @@
       <!-- Review additional modules which do not match the prefix -->
       <param>${projects.custom}</param>
     </drush>
-    <append destFile="${project.basedir}/build/logs/checkstyle.xml" text="${xml}" />
+    <property name="coderreview.checkstyle.file"  value="${project.logdir}/checkstyle.xml" />
+    <append destFile="${coderreview.checkstyle.file}" text="${xml}" />
     <!-- Modify Coder Review XML output to match CheckStyle XML report format
          Convert root element from coderreview to checkstyle
          Convert severities from Drupal minor/normal/critical to CheckStyle info/warning/error 
          This could probably be handled better using an XSLT. Use string replacement for now.
          Filter chains does not seem to work in append so we load the file again.-->
-    <loadfile property="xml" file="${project.basedir}/build/logs/checkstyle.xml">
+    <loadfile property="xml" file="${coderreview.checkstyle.file}">
       <filterchain>
         <replaceregexp>
           <regexp pattern="coderreview" replace="checkstyle" />
@@ -343,8 +351,8 @@
       </filterchain>
     </loadfile>
     <!-- Now we have transformed the content so delete the old version and save again. -->
-    <delete file="${project.basedir}/build/logs/checkstyle.xml" />
-    <append destFile="${project.basedir}/build/logs/checkstyle.xml" text="${xml}" />
+    <delete file="${coderreview.checkstyle.file}" />
+    <append destFile="${coderreview.checkstyle.file}" text="${xml}" />
   </target>
 
   <target name="simpletest"
@@ -356,15 +364,15 @@
     <drush command="test-run" assume="yes">
       <option name="all" />
       <!-- XML output requires a drush 4.5 or this patch http://drupal.org/node/1109408 -->
-      <option name="xml">${project.basedir}/build/tests</option>
+      <option name="xml">${project.testdir/tests</option>
     </drush>
   </target>
 
   <target name="phpdoc"
           description="Generate API documentation using PHPDocumentor">
-    <mkdir dir="${project.basedir}/build/api"/>
+    <mkdir dir="${project.buildir/api"/>
     <phpdoc title="API Documentation"
-            destdir="${project.basedir}/build/api"
+            destdir="${project.builddir}/api"
             sourcecode="php"
             output="HTML:Smarty:PHP">
       <fileset refid="src.php" />
@@ -375,9 +383,9 @@
   <target name="phpcb"
           description="Aggregate tool output with PHP_CodeBrowser">
     <mkdir dir="${project.basedir}/build/code-browser"/>
-    <exec command="phpcb  --log ${project.basedir}/build/logs 
+    <exec command="phpcb  --log ${project.logdir} 
                           --source ${project.basedir} 
-                          --output ${project.basedir}/build/code-browser" 
+                          --output ${project.builddir}/code-browser" 
           logoutput="true" />
   </target>
 
