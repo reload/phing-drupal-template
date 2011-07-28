@@ -40,6 +40,10 @@
     <exclude name="**/*.min.js" />  
   </patternset>
 
+  <patternset id="css">
+    <include name="**/*.css" />
+  </patternset>
+
   <patternset id="contrib">
     <exclude name="**/contrib/**/*.*" />
     <exclude name="**/libraries/**/*.*" />
@@ -66,6 +70,15 @@
   
   <fileset dir="${project.basedir}" id="src.js">
     <patternset refid="js" />
+  </fileset>
+
+  <fileset dir="${project.sitesdir}" id="src.css.custom">
+    <patternset refid="css" />
+    <patternset refid="contrib" />
+  </fileset>
+  
+  <fileset dir="${project.basedir}" id="src.css">
+    <patternset refid="css" />
   </fileset>
 
   <fileset dir="${project.sitesdir}" id="src.js.custom">
@@ -462,6 +475,7 @@
   <target name="verify" depends="clean,
                                  lint-php-custom,
                                  lint-js-custom,
+                                 lint-css-custom,
                                  check-php-debug,
                                  check-js-debug" />
                                  <!-- No simpletest for now until we figure out how to speed
