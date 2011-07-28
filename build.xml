@@ -49,6 +49,7 @@
 
   <patternset id="generated">
     <exclude name="**/*.features.*" />
+    <exclude name="**/*.layouts.inc" />
     <exclude name="**/*.pages_default.inc" />
     <exclude name="**/*.strongarm.inc" />
   </patternset>
