@@ -107,18 +107,60 @@
 
   <target name="lint-js"
           description="Check all Javascript files using JSlint">
-    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.logdir}/jslint.txt">
-      <fileset refid="src.js" />
-    </jsllint>
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.js"/>
+    </foreach>
   </target>
 
   <target name="lint-js-custom"
           description="Check custom Javascript files using JSlint">
-    <jsllint haltonfailure="true" showwarnings="true" tofile="${project.logdir}/jslint.txt">
-      <fileset refid="src.js.custom" />
-    </jsllint>
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.js.custom"/>
+    </foreach>
   </target>
- 
+
+  <target name="lint-css"
+          description="Check all CSS files using JSlint">
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.css"/>
+    </foreach>
+  </target>
+
+  <target name="lint-css-custom"
+          description="Check custom CSS files using JSlint">
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.css.custom"/>
+    </foreach>
+  </target>
+
+  <target name="jslint-file">
+    <property name="jslint4java.dir" value="${project.codedir}/jslint4java"/>
+    <if>
+      <not><available file="${project.codedir}/jslint4java" /></not>
+      <then>
+        <!-- Download and unpack jslint4java -->
+        <mkdir dir="${jslint4java.dir}" />
+        <httpget url="http://jslint4java.googlecode.com/files/jslint4java-2.0.0-dist.zip" 
+                 dir="${jslint4java.dir}"/>
+        <unzip file="${jslint4java.dir}/jslint4java-2.0.0-dist.zip" todir="${jslint4java.dir}" />
+      </then>
+    </if>
+    
+    <!-- Use jslint´ instead - it is a bit more reasonable -->
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.codedir}/jslint"/>
+      <property name="repo.url" value="https://github.com/mikewest/JSLint" />
+    </phingcall>
+
+    <exec command="java -jar ${project.codedir}/jslint4java/jslint4java-2.0.0/jslint4java-2.0.0.jar --jslint ${project.codedir}/jslint/fulljslint.js --report checkstyle ${absfilename}" outputProperty="report"/>
+    <php function="str_replace" returnProperty="filename.normalized">
+      <param value="/"/>
+      <param value="-"/>
+      <param value="${filename}"/>
+    </php>
+    <append text="${report}" destFile="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
+  </target>
+
   <target name="check-php-debug"
           description="Check custom PHP code for debug statements">
     <property name="php.debugfile" value="${project.logdir}/debug_php.txt" />
@@ -259,7 +301,7 @@
       <property name="repo.url" value="${phpcs.drupalcs.repository}" />
     </phingcall>
     <exec command="phpcs --report=checkstyle 
-                         --report-file=${project.logdir}/codesniffer-checkstyle.xml 
+                         --report-file=${project.logdir}/checkstyle-codesniffer.xml 
                          --standard=${project.codedir}/drupalcs/ruleset.xml 
                          --extensions=php,inc
                          --ignore=*/contrib/*,*/*.features.*,*/*.layout.*,*/*.pages_default.*,*/*strongarm.inc
