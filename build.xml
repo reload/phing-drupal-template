@@ -133,14 +133,12 @@
   <target name="jslint-file"
           depends="load-properties">
     <property name="jslint4java.dir" value="${project.codedir}/jslint4java"/>
+    <php function="basename" returnProperty="jslint4java.zipfile">
+      <param value="${jslint4java.url}" />
+    </php>
     <php function="basename" returnProperty="jslint4java.basename">
       <param value="${jslint4java.url}" />
-      <param value=".zip" />
-    </php>
-    <php function="str_replace" returnProperty="jslint4java.jarfile">
-      <param value="-dist" />
-      <param value=".jar" />
-      <param value="${jslint4java.basename}" />
+      <param value="-dist.zip" />
     </php>
 
     <if>
@@ -150,7 +148,7 @@
         <mkdir dir="${jslint4java.dir}" />
         <httpget url="${jslint4java.url}"
                  dir="${jslint4java.dir}"/>
-        <unzip file="${jslint4java.dir}/${jslint4java.basename}.zip" todir="${jslint4java.dir}" />
+        <unzip file="${jslint4java.dir}/${jslint4java.zipfile}" todir="${jslint4java.dir}" />
       </then>
     </if>
 
@@ -159,7 +157,7 @@
       <property name="repo.url" value="${jslint.repository}" />
     </phingcall>
 
-    <exec command="java -jar ${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename} --jslint ${project.codedir}/jslint/${jslint.file} --report checkstyle ${absfilename}" outputProperty="report"/>
+    <exec command="java -jar ${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename}.jar --jslint ${project.codedir}/jslint/${jslint.file} --report checkstyle ${absfilename}" outputProperty="report"/>
     <!-- Replace / with - in path to create legal filenames -->
     <php function="str_replace" returnProperty="filename.normalized">
       <param value="/"/>
