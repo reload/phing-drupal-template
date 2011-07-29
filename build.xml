@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="name-of-project" default="build" basedir=".">
-  <!-- Set the version of Drupal for the project - 6 or 7 -->
-  <property name="drupal.version" value="7" />
-  <!-- Set the database url to use for site installs -->
-  <property name="db.url" value="sqlite:${project.basedir}/database.sqlite" />
-  <!-- Set the prefix for modules with a common prefix developed for the site -->
-  <property name="projects.prefix" value="your_prefix" />
-  <!-- Set the name of other modules and themes developed for the site -->
-  <property name="projects.custom" value="your_theme other_module " />
-
-  <!-- Set the value to the repository to clone for Phing PHPLoc task -->
-  <property name="phing.phploc.repository" value="https://github.com/raphaelstolt/phploc-phing.git" />
-  <!-- Set the value to the repository to clone for Phing Drush task -->
-  <property name="phing.drush.repository" value="http://git.drupal.org/sandbox/mongolito404/1157574.git" />
-  <!-- Set the value to the repository to clone for PHP CodeSniffer coding standards task
-       NB: This is only required if using the phpcs target / PHP_Codesniffer -->
-  <property name="phpcs.drupalcs.repository" value="https://github.com/ericduran/drupalcs.git" />
 
   <!-- Define working directories -->
   <property name="project.sitesdir" value="${project.basedir}/sites/all" />
@@ -146,31 +130,43 @@
     </foreach>
   </target>
 
-  <target name="jslint-file">
+  <target name="jslint-file"
+          depends="load-properties">
     <property name="jslint4java.dir" value="${project.codedir}/jslint4java"/>
+    <php function="basename" returnProperty="jslint4java.basename">
+      <param value="${jslint4java.url}" />
+      <param value=".zip" />
+    </php>
+    <php function="str_replace" returnProperty="jslint4java.jarfile">
+      <param value="-dist" />
+      <param value=".jar" />
+      <param value="${jslint4java.basename}" />
+    </php>
+
     <if>
       <not><available file="${project.codedir}/jslint4java" /></not>
       <then>
         <!-- Download and unpack jslint4java -->
         <mkdir dir="${jslint4java.dir}" />
-        <httpget url="http://jslint4java.googlecode.com/files/jslint4java-2.0.0-dist.zip"
+        <httpget url="${jslint4java.url}"
                  dir="${jslint4java.dir}"/>
-        <unzip file="${jslint4java.dir}/jslint4java-2.0.0-dist.zip" todir="${jslint4java.dir}" />
+        <unzip file="${jslint4java.dir}/${jslint4java.basename}.zip" todir="${jslint4java.dir}" />
       </then>
     </if>
 
-    <!-- Use jslint´ instead - it is a bit more reasonable -->
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.codedir}/jslint"/>
-      <property name="repo.url" value="https://github.com/mikewest/JSLint" />
+      <property name="repo.url" value="${jslint.repository}" />
     </phingcall>
 
-    <exec command="java -jar ${project.codedir}/jslint4java/jslint4java-2.0.0/jslint4java-2.0.0.jar --jslint ${project.codedir}/jslint/fulljslint.js --report checkstyle ${absfilename}" outputProperty="report"/>
+    <exec command="java -jar ${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename} --jslint ${project.codedir}/jslint/${jslint.file} --report checkstyle ${absfilename}" outputProperty="report"/>
+    <!-- Replace / with - in path to create legal filenames -->
     <php function="str_replace" returnProperty="filename.normalized">
       <param value="/"/>
       <param value="-"/>
       <param value="${filename}"/>
     </php>
+    <delete file="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
     <append text="${report}" destFile="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
   </target>
 
@@ -194,7 +190,7 @@
     </if>
   </target>
 
-  <!-- Checks an individual file for debug code. Executed from checkdebugphp. -->
+  <!-- Checks an individual file for debug code. Executed from check-php-debug. -->
   <target name="check-php-debug-file">
     <loadfile property="debuglines" file="${absfilename}">
       <filterchain>
@@ -234,7 +230,7 @@
     </if>
   </target>
 
-  <!-- Checks an individual file for debug code. Executed from checkdebugjs. -->
+  <!-- Checks an individual file for debug code. Executed from check-js-debug. -->
   <target name="check-js-debug-file">
     <loadfile property="debuglines" file="${absfilename}">
       <filterchain>
@@ -308,7 +304,8 @@
   <!-- There is no Phing task for PHP Codesniffer in v2.4.6. It's coming for v2.5.
        Execute while we wait.-->
   <target name="phpcs"
-          description="Generate checkstyle.xml using PHP_CodeSniffer">
+          description="Generate checkstyle.xml using PHP_CodeSniffer"
+          depends="load-properties">
     <phingcall target="setupgitrepo">
       <property name="repo.dir" value="${project.codedir}/drupalcs"/>
       <property name="repo.url" value="${phpcs.drupalcs.repository}" />
@@ -323,16 +320,16 @@
   </target>
 
   <target name="site-install"
-          depends="setup-phing-drush">
+          depends="load-properties, setup-phing-drush">
     <drush command="site-install" assume="yes">
       <option name="db-url">${db.url}</option>
-      <param>casting</param>
+      <param>${drupal.profile}</param>
     </drush>
   </target>
 
   <target name="coder-review"
           description="Review code using Drupal Coder module"
-          depends="clean, setup-phing-drush, site-install">
+          depends="load-properties, clean, setup-phing-drush, site-install">
     <drush command="pm-download" assume="yes">
       <!-- Currently only dev versions of Coder supports returning code review
            results in Checkstyle XML format -->
@@ -387,6 +384,7 @@
       <param>${projects.custom}</param>
     </drush>
     <property name="coderreview.checkstyle.file"  value="${project.logdir}/checkstyle.xml" />
+    <delete file="${coderreview.checkstyle.file}" />
     <append destFile="${coderreview.checkstyle.file}" text="${xml}" />
     <!-- Modify Coder Review XML output to match CheckStyle XML report format
          Convert root element from coderreview to checkstyle
@@ -416,7 +414,7 @@
     <drush command="test-run" assume="yes">
       <option name="all" />
       <!-- XML output requires a drush 4.5 or this patch http://drupal.org/node/1109408 -->
-      <option name="xml">${project.testdir/tests</option>
+      <option name="xml">${project.testdir}/tests</option>
     </drush>
   </target>
 
@@ -441,6 +439,18 @@
           logoutput="true" />
   </target>
 
+  <!-- Helper taks to load properties -->
+  <target name="load-properties">
+    <php function="dirname" returnProperty="properties.dir">
+      <param value="${phing.file}"/>
+    </php>
+
+    <!-- If no properties are available then use the default properties -->
+    <property name="properties.file" value="${properties.dir}/build.default.properties" />
+    <available file="${properties.dir}/build.properties" property="properties.file" value="${properties.dir}/build.properties" />
+    <property file="${properties.file}" />
+  </target>
+
   <!-- Helper task to clone a git repository if it does not exist already -->
   <target name="setup-git-repo">
     <if>
@@ -453,8 +463,10 @@
     </if>
   </target>
 
+  <!-- Helper task to setup Phing PHPLoc integration -->
   <target name="setup-phing-phploc"
-          description="Generate phploc.csv using PHPLOC">
+          description="Generate phploc.csv using PHPLOC"
+          depends="load-properties" >
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.codedir}/phing-phploc"/>
       <property name="repo.url" value="${phing.phploc.repository}" />
@@ -462,7 +474,9 @@
     <taskdef name="phploc" classname="PHPLocTask" classpath="${project.codedir}/phing-phploc" />
   </target>
 
-  <target name="setup-phing-drush">
+  <!-- Helper task to setup Phing Drush integration -->
+  <target name="setup-phing-drush"
+          depends="load-properties" >
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.codedir}/phing-drush"/>
       <property name="repo.url" value="${phing.drush.repository}" />
