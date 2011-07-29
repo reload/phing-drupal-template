@@ -6,9 +6,9 @@
   <!-- Set the database url to use for site installs -->
   <property name="db.url" value="sqlite:${project.basedir}/database.sqlite" />
   <!-- Set the prefix for modules with a common prefix developed for the site -->
-  <property name="projects.prefix" value="cast" />
-  <!-- Set the prefix for other modules and themes developed for the site -->
-  <property name="projects.custom" value="troupe " />
+  <property name="projects.prefix" value="your_prefix" />
+  <!-- Set the name of other modules and themes developed for the site -->
+  <property name="projects.custom" value="your_theme other_module " />
 
   <!-- Set the value to the repository to clone for Phing PHPLoc task -->
   <property name="phing.phploc.repository" value="https://github.com/raphaelstolt/phploc-phing.git" />
