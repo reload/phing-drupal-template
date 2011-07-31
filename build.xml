@@ -20,7 +20,7 @@
 
   <target name="lint-js"
           description="Check all Javascript files using JSlint"
-          depends="init">
+          depends="init, setup-jslint4java, setup-jslint">
     <foreach target="jslint-file" param="filename" absparam="absfilename">
       <fileset refid="src.js"/>
     </foreach>
@@ -28,7 +28,7 @@
 
   <target name="lint-js-custom"
           description="Check custom Javascript files using JSlint"
-          depends="init">
+          depends="init, setup-jslint4java, setup-jslint">
     <foreach target="jslint-file" param="filename" absparam="absfilename">
       <fileset refid="src.js.custom"/>
     </foreach>
@@ -36,7 +36,7 @@
 
   <target name="lint-css"
           description="Check all CSS files using JSlint"
-          depends="init">
+          depends="init, setup-jslint4java, setup-jslint">
     <foreach target="jslint-file" param="filename" absparam="absfilename">
       <fileset refid="src.css"/>
     </foreach>
@@ -44,45 +44,23 @@
 
   <target name="lint-css-custom"
           description="Check custom CSS files using JSlint"
-          depends="init">
+          depends="init, setup-jslint4java, setup-jslint">
     <foreach target="jslint-file" param="filename" absparam="absfilename">
       <fileset refid="src.css.custom"/>
     </foreach>
   </target>
 
-  <!-- Common target for running jslint on a file -->
-  <target name="jslint-file"
-          depends="init">
-    <property name="jslint4java.dir" value="${project.toolsdir}/jslint4java"/>
-    <php function="basename" returnProperty="jslint4java.basename">
-      <param value="${jslint4java.url}" />
-      <!-- Assume that the version of jslint4java used is a distribution
-           where the filename ends in -dist.zip. -->
-      <param value="-dist.zip" />
-    </php>
+  <!-- Common target for running jslint on a file.
+       No need to run init or setup tasks here. This task should only be called from
+       parent lint-* tasks. -->
+  <target name="jslint-file">
+    <echo>Linting file: ${absfilename}</echo>
 
-    <if>
-      <not><available file="${project.toolsdir}/jslint4java" /></not>
-      <then>
-        <!-- Download and unpack jslint4java -->
-        <mkdir dir="${jslint4java.dir}" />
-        <php function="basename" returnProperty="jslint4java.zipfile">
-          <param value="${jslint4java.url}" />
-        </php>
+    <exec command="java -jar ${jslint4java.file} --jslint ${jslint.file} --report checkstyle ${absfilename}"
+          outputProperty="report" />
 
-        <httpget url="${jslint4java.url}"
-                 dir="${jslint4java.dir}"/>
-        <unzip file="${jslint4java.dir}/${jslint4java.zipfile}" todir="${jslint4java.dir}" />
-      </then>
-    </if>
-
-    <phingcall target="setup-git-repo">
-      <property name="repo.dir" value="${project.toolsdir}/jslint"/>
-      <property name="repo.url" value="${jslint.repository}" />
-    </phingcall>
-
-    <exec command="java -jar ${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename}.jar --jslint ${project.toolsdir}/jslint/${jslint.file} --report checkstyle ${absfilename}" outputProperty="report"/>
-    <!-- Replace / with - in path to create legal filenames -->
+    <!-- Print the result to a file.
+         Replace / with - in path to create legal filenames -->
     <php function="str_replace" returnProperty="filename.normalized">
       <param value="/"/>
       <param value="-"/>
@@ -144,7 +122,7 @@
        No need to run init here. This task should only be called from
        parent check-debug-* tasks. -->
   <target name="check-debug-file">
-    <echo>Checking file for debug statements: $absfilename</echo>
+    <echo>Checking file for debug statements: ${absfilename}</echo>
     <loadfile property="debug.lines" file="${absfilename}">
       <filterchain>
         <linecontainsregexp>
@@ -572,6 +550,50 @@
       <property name="repo.url" value="${phing.drush.repository}" />
     </phingcall>
     <taskdef name="drush" classname="DrushTask" classpath="${project.toolsdir}/phing-drush" />
+  </target>
+
+  <!-- Helper task to setup jslint4java -->
+  <target name="setup-jslint4java"
+          depends="init"
+          unless="project.jslint4java.setup">
+    <property name="jslint4java.dir" value="${project.toolsdir}/jslint4java"/>
+    <php function="basename" returnProperty="jslint4java.basename">
+      <param value="${jslint4java.url}" />
+      <!-- Assume that the version of jslint4java used is a distribution
+           where the filename ends in -dist.zip. -->
+      <param value="-dist.zip" />
+    </php>
+
+    <!-- Download and unpack jslint4java -->
+    <mkdir dir="${jslint4java.dir}" />
+    <php function="basename" returnProperty="jslint4java.zipfile">
+      <param value="${jslint4java.url}" />
+    </php>
+
+    <httpget url="${jslint4java.url}"
+             dir="${jslint4java.dir}"/>
+    <unzip file="${jslint4java.dir}/${jslint4java.zipfile}" todir="${jslint4java.dir}" />
+
+    <property name="jslint4java.file" value="${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename}.jar"/>
+
+
+    <!-- Set property to prevent unnecessary additional invocations of this target -->
+    <property name="project.jslint4java.setup" value="true" />
+  </target>
+
+  <!-- Helper task to setup jslint -->
+  <target name="setup-jslint"
+          depends="init"
+          unless="project.jslint.setup">
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.toolsdir}/jslint"/>
+      <property name="repo.url" value="${jslint.repository}" />
+    </phingcall>
+
+    <property name="jslint.file" value="${project.toolsdir}/jslint/${jslint.file}" override="true" />
+
+    <!-- Set property to prevent unnecessary additional invocations of this target -->
+    <property name="project.jslint.setup" value="true" />
   </target>
 
   <!-- Main targets -->
