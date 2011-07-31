@@ -95,17 +95,20 @@
   <target name="check-php-debug"
           description="Check custom PHP code for debug statements"
           depends="init">
-    <property name="php.debugfile" value="${project.logdir}/debug_php.txt" />
-    <delete file="${php.debugfile}"/>
-    <append text="" destFile="${php.debugfile}"/>
-    <foreach target="check-php-debug-file" param="filename" absparam="absfilename">
+    <property name="debug.pattern" value="(var_dump\(|dsm\(|dpm\()" override="true" />
+    <property name="debug.output" value="${project.logdir}/debug_php.txt" override="true" />
+    <delete file="${debug.output}"/>
+    <append text="" destFile="${debug.output}"/>
+
+    <foreach target="check-debug-file" param="filename" absparam="absfilename">
       <fileset refid="src.php.custom"/>
     </foreach>
-    <loadfile property="debuglines" file="${php.debugfile}" />
+
+    <loadfile property="debug.lines" file="${debug.output}" />
     <!-- Break if debug code is detected -->
     <if>
       <not>
-        <equals arg1="${debuglines}" arg2="" />
+        <equals arg1="${debug.lines}" arg2="" />
       </not>
       <then>
         <fail message="PHP debug code detected:${line.separator}${debuglines}" />
@@ -113,65 +116,49 @@
     </if>
   </target>
 
-  <!-- Checks an individual file for debug code. Executed from check-php-debug. -->
-  <target name="check-php-debug-file"
-          depends="init">
-    <loadfile property="debuglines" file="${absfilename}">
-      <filterchain>
-        <linecontainsregexp>
-            <regexp pattern="(var_dump\(|dsm\(|dpm\()" />
-          </linecontainsregexp>
-      </filterchain>
-    </loadfile>
-    <if>
-      <not>
-        <equals arg1="${debuglines}" arg2="" />
-      </not>
-      <then>
-        <append text="${filename}:${line.separator}${debuglines}${line.separator}${line.separator}"
-                destFile="${project.logdir}/debug_php.txt"/>
-      </then>
-    </if>
-  </target>
-
   <target name="check-js-debug"
           description="Check custom Javascript code for debug statements"
           depends="init">
-    <property name="js.debugfile" value="${project.logdir}/debug_js.txt" />
-    <delete file="${js.debugfile}"/>
-    <append text="" destFile="${js.debugfile}"/>
-    <foreach target="check-js-debug-file" param="filename" absparam="absfilename">
+    <property name="debug.pattern" value="(console\.log\()" override="true" />
+    <property name="debug.output" value="${project.logdir}/debug_js.txt" override="true" />
+    <delete file="${debug.output}"/>
+    <append text="" destFile="${debug.output}" />
+
+    <foreach target="check-debug-file" param="filename" absparam="absfilename">
       <fileset refid="src.js.custom"/>
     </foreach>
-    <loadfile property="debuglines" file="${js.debugfile}" />
+
+    <loadfile property="debug.lines" file="${debug.output}" />
     <!-- Break if debug code is detected! -->
     <if>
       <not>
-        <equals arg1="${debuglines}" arg2="" />
+        <equals arg1="${debug.lines}" arg2="" />
       </not>
       <then>
-        <fail message="Javascript debug code detected:${line.separator}${debuglines}" />
+        <fail message="Javascript debug code detected:${line.separator}${debug.lines}" />
       </then>
     </if>
   </target>
 
-  <!-- Checks an individual file for debug code. Executed from check-js-debug. -->
-  <target name="check-js-debug-file"
-          depends="init">
-    <loadfile property="debuglines" file="${absfilename}">
+  <!-- Common task for checking an individual file for debug code.
+       No need to run init here. This task should only be called from
+       parent check-debug-* tasks. -->
+  <target name="check-debug-file">
+    <echo>Checking file for debug statements: $absfilename</echo>
+    <loadfile property="debug.lines" file="${absfilename}">
       <filterchain>
         <linecontainsregexp>
-            <regexp pattern="(console\.log\()" />
+            <regexp pattern="${debug.pattern}" />
           </linecontainsregexp>
       </filterchain>
     </loadfile>
     <if>
       <not>
-        <equals arg1="${debuglines}" arg2="" />
+        <equals arg1="${debug.lines}" arg2="" />
       </not>
       <then>
-        <append text="${filename}:${line.separator}${debuglines}${line.separator}${line.separator}"
-                destFile="${project.logdir}/debug_js.txt"/>
+        <append text="${filename}:${line.separator}${debug.lines}${line.separator}${line.separator}"
+                destFile="${debug.output}"/>
       </then>
     </if>
   </target>
