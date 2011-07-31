@@ -294,9 +294,12 @@
     <!-- Patch Coder module to add support for piping review output.
          This is needed as there is no other way to grab the result and
          write it to a file. -->
-    <httpget url="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"
-             dir="${project.sitesdir}/modules/contrib/coder"/>
-    <patch patchfile="${coder.patch.url}"
+    <httpget url="${coder.patch.url}"
+             dir="${coder.patch.dir}"/>
+    <php function="basename" returnProperty="coder.patch.file">
+      <param value="${coder.patch.url}"/>
+    </php>
+    <patch patchfile="${coder.patch.dir}/${coder.patch.file}"
            dir="${coder.patch.dir}"
            haltonfailure="true" />
 
