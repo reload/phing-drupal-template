@@ -239,42 +239,22 @@
 
   <target name="coder-review-d7"
           description="Review code using Drupal 7 Coder module"
-          depends="init">
-    <phingcall target="coder-review">
-      <property name="coder.version" value="7.x-1.x-dev"/>
-      <property name="coder.patch.url" value="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"/>
-      <property name="coder.patch.dir" value="${project.sitesdir}/modules/contrib/coder/coder_review"/>
-      <property name="coder.review.module" value="coder_review"/>
-      <property name="coder.review.command" value="coder-review"/>
-    </phingcall>
+          depends="init, clean, site-install">
+    <property name="coder.version" value="7.x-1.x-dev"/>
+    <property name="coder.patch.url" value="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"/>
+    <property name="coder.patch.dir" value="${project.sitesdir}/modules/contrib/coder/coder_review"/>
+    <property name="coder.review.module" value="coder_review"/>
+    <property name="coder.review.command" value="coder-review"/>
+
+    <phingcall target="setup-coder-review"/>
+
+    <foreach target="coder-review" param="coder.review.type" list="comment,i18n,security,sql,style" />
   </target>
 
   <!-- The actual task for performing code reviews.
        Requires properties set by calling tasks coder-review-d6 or coder-review-d7 -->
   <target name="coder-review"
-          depends="init, clean, setup-phing-drush, site-install">
-    <drush command="pm-download" assume="yes">
-      <!-- Currently only dev versions of Coder supports returning code review
-           results in Checkstyle XML format -->
-      <param>coder-${coder.version}</param>
-    </drush>
-
-    <!-- Patch Coder module to add support for piping review output.
-         This is needed as there is no other way to grab the result and
-         write it to a file. -->
-    <httpget url="${coder.patch.url}"
-             dir="${coder.patch.dir}"/>
-    <php function="basename" returnProperty="coder.patch.file">
-      <param value="${coder.patch.url}"/>
-    </php>
-    <patch patchfile="${coder.patch.dir}/${coder.patch.file}"
-           dir="${coder.patch.dir}"
-           haltonfailure="true" />
-
-    <drush command="pm-enable" assume="yes">
-      <param>${coder.review.module}</param>
-    </drush>
-
+          depends="init, setup-phing-drush">
     <!-- Get a list of modules and themes matching the project prefix.
          These are the ones we are going to review. -->
     <drush command="pm-list" pipe="projects" />
@@ -282,7 +262,7 @@
          the only way to handle filtering of values in Phing. -->
     <delete file="${project.basedir}/build/logs/projects.txt" />
     <append text="${projects}" destFile="${project.logdir}/projects.txt" />
-    <loadfile property="projects" file="${project.logdir}/projects.txt">
+    <loadfile property="project.code.projects" file="${project.logdir}/projects.txt">
       <filterchain>
         <linecontainsregexp>
           <regexp pattern="^${project.code.prefix}_" />
@@ -298,17 +278,13 @@
       <param>no-empty</param>
       <param>xml</param>
       <param>minor</param>
-      <param>comment</param>
-      <param>i18n</param>
-      <param>security</param>
-      <param>sql</param>
-      <param>style</param>
+      <param>${coder.review.type}</param>
       <!-- Review all the modules and themes matching the project prefix -->
-      <param>${projects}</param>
+      <param>${project.code.projects}</param>
       <!-- Review additional modules which do not match the prefix -->
       <param>${project.code.custom}</param>
     </drush>
-    <property name="coderreview.checkstyle.file"  value="${project.logdir}/checkstyle.xml" />
+    <property name="coderreview.checkstyle.file"  value="${project.logdir}/checkstyle-${coder.review.type}.xml" />
     <delete file="${coderreview.checkstyle.file}" />
     <append destFile="${coderreview.checkstyle.file}" text="${xml}" />
     <!-- Modify Coder Review XML output to match CheckStyle XML report format
@@ -317,6 +293,9 @@
          Convert source from source extract to Category.Type format
          This could probably be handled better using an XSLT. Use string replacement for now.
          Filter chains does not seem to work in append so we load the file again.-->
+    <php function="ucwords" returnProperty="type">
+      <param value="${coder.review.type}"/>
+    </php>
     <reflexive file="${coderreview.checkstyle.file}">
       <filterchain>
         <replaceregexp>
@@ -324,7 +303,7 @@
           <regexp pattern='severity="minor"' replace='severity="info"' />
           <regexp pattern='severity="normal"' replace='severity="warning"' />
           <regexp pattern='severity="critical"' replace='severity="error"' />
-          <regexp pattern='source=".*"' replace='source="Drupal.CoderReview"' />
+          <regexp pattern='source=".*"' replace='source="Drupal.CoderReview.${type}"' />
         </replaceregexp>
       </filterchain>
     </reflexive>
@@ -594,6 +573,31 @@
 
     <!-- Set property to prevent unnecessary additional invocations of this target -->
     <property name="project.jslint.setup" value="true" />
+  </target>
+
+  <!-- Helper task to setup Drupal module for performing code reviews -->
+  <target name="setup-coder-review">
+    <drush command="pm-download" assume="yes">
+      <!-- Currently only dev versions of Coder supports returning code review
+           results in Checkstyle XML format -->
+      <param>coder-${coder.version}</param>
+    </drush>
+
+    <!-- Patch Coder module to add support for piping review output.
+         This is needed as there is no other way to grab the result and
+         write it to a file. -->
+    <httpget url="${coder.patch.url}"
+             dir="${coder.patch.dir}"/>
+    <php function="basename" returnProperty="coder.patch.file">
+      <param value="${coder.patch.url}"/>
+    </php>
+    <patch patchfile="${coder.patch.dir}/${coder.patch.file}"
+           dir="${coder.patch.dir}"
+           haltonfailure="true" />
+
+    <drush command="pm-enable" assume="yes">
+      <param>${coder.review.module}</param>
+    </drush>
   </target>
 
   <!-- Main targets -->
