@@ -261,12 +261,14 @@
   <target name="coder-review-d6"
           description="Review code using Drupal 6 Coder module"
           depends="init">
-    <echo level="warning">Coder Review not support for Drupal 6 yet. Check http://drupal.org/node/858330 for patches/updates.</echo>
+    <echo level="warning">Coder Review not support for Drupal 6 yet.
+                          Check http://drupal.org/node/858330 for patches/updates.</echo>
     <!--<phingcall target="coder-review">
       <property name="coder.version" value="6.x-2.0-rc1"/>
       <property name="coder.patch.url" value=""/>
       <property name="coder.patch.dir" value="${project.sitesdir}/modules/contrib/coder"/>
-      <property name="coder.drush.command" value="coder"/>
+      <property name="coder.review.module" value="coder"/>
+      <property name="coder.review.command" value="coder"/>
     </phingcall>-->
   </target>
 
@@ -277,7 +279,8 @@
       <property name="coder.version" value="7.x-1.x-dev"/>
       <property name="coder.patch.url" value="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"/>
       <property name="coder.patch.dir" value="${project.sitesdir}/modules/contrib/coder/coder_review"/>
-      <property name="coder.drush.command" value="coder_review"/>
+      <property name="coder.review.module" value="coder_review"/>
+      <property name="coder.review.command" value="coder-review"/>
     </phingcall>
   </target>
 
@@ -304,7 +307,7 @@
            haltonfailure="true" />
 
     <drush command="pm-enable" assume="yes">
-      <param>${coder.drush.command}</param>
+      <param>${coder.review.module}</param>
     </drush>
 
     <!-- Get a list of modules and themes matching the project prefix.
@@ -326,7 +329,7 @@
       </filterchain>
     </loadfile>
 
-    <drush command="coder-review" assume="yes" pipe="xml">
+    <drush command="${coder.review.command}" assume="yes" pipe="xml">
       <param>no-empty</param>
       <param>xml</param>
       <param>minor</param>
@@ -334,7 +337,6 @@
       <param>i18n</param>
       <param>security</param>
       <param>sql</param>
-      <param>style</param>
       <param>style</param>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${projects}</param>
