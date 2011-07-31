@@ -403,6 +403,23 @@
   <target name="init"
           depends="load-properties"
           unless="project.initialized">
+    <!-- By default Jenkins runs Phing from the directory containing build.xml.
+         If build.xml is located in a subdirectory - e.g. when using Phing Drupal as
+         a submodule - we need to reset the project basedir and reload properties.
+         NB: This only works if the subdirectory is directly within the Drupal
+             root directory. -->
+    <if>
+      <!-- If cron.php exists then assume we have a Drupal root directory -->
+      <available file="${project.basedir}/../cron.php"/>
+      <then>
+        <property name="project.basedir" value="${project.basedir}/../" override="true"/>
+        <resolvepath propertyName="project.basedir" file="${project.basedir}"/>
+        <phingcall target="load-properties">
+          <property name="project.properties.initialized" value="false" />
+        </phingcall>
+      </then>
+    </if>
+
     <!-- Define working directories -->
     <property name="project.sitesdir" value="${project.basedir}/${project.code.dir}" />
     <property name="project.builddir" value="${project.basedir}/build" />
@@ -498,29 +515,36 @@
   </target>
 
   <!-- Helper taks to load properties -->
-  <target name="load-properties"
-          unless="project.properties.loaded">
-    <!-- By default use default properties -->
-    <property name="project.properties.file"
-              value="${phing.dir}/build.default.properties" />
-    <!-- Allow override using build.properties in build.xml dir -->
-    <php function="dirname" returnProperty="phing.dir">
-      <param value="${phing.file}"/>
-    </php>
-    <available file="${phing.dir}/build.properties"
-               property="project.properties.file"
-               value="${phing.dir}/build.properties" />
-    <!-- Allow override using build.properties in project basedir -->
-    <available file="${project.basedir}/build.properties"
-               property="project.properties.file"
-               value="${project.basedir}/build.properties" />
+  <target name="load-properties">
+    <!-- Use condition instead of unless property as we cannot unset properties
+         in Phing -->
+    <if>
+      <not><equals arg1="${project.properties.loaded}" arg2="true"/></not>
+      <then>
+        <!-- By default use default properties -->
+        <property name="project.properties.file"
+                  value="${phing.dir}/build.default.properties" />
+        <!-- Allow override using build.properties in build.xml dir -->
+        <php function="dirname" returnProperty="phing.dir">
+          <param value="${phing.file}"/>
+        </php>
+        <available file="${phing.dir}/build.properties"
+                   property="project.properties.file"
+                   value="${phing.dir}/build.properties" />
+        <!-- Allow override using build.properties in project basedir -->
+        <available file="${project.basedir}/build.properties"
+                   property="project.properties.file"
+                   value="${project.basedir}/build.properties" />
 
-    <!-- Load the properties -->
-    <property file="${project.properties.file}" />
-    <echo>Loaded properties file ${project.properties.file}</echo>
+        <!-- Load the properties.
+             Override in case load properties are called multiple times. -->
+        <property file="${project.properties.file}" override="true" />
+        <echo>Loaded properties file ${project.properties.file}</echo>
 
-    <!-- Set property to prevent unnecessary additional invocations of this target -->
-    <property name="project.properties.loaded" value="true" />
+        <!-- Set property to prevent unnecessary additional invocations of this target -->
+        <property name="project.properties.loaded" value="true" />
+      </then>
+    </if>
   </target>
 
   <!-- Helper task to clone a git repository if it does not exist already -->
