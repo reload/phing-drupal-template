@@ -475,7 +475,11 @@
   <target name="clean"
           description="Clean up and create artifact directories"
           depends="init">
-    <delete dir="${project.basedir}/build"/>
+    <!-- Do not delete builddir. It may contain the build.xml file -->
+    <mkdir dir="${project.toolsdir}"/>
+    <mkdir dir="${project.coveragedir}"/>
+    <mkdir dir="${project.logdir}"/>
+    <mkdir dir="${project.testdir}"/>
     <delete dir="${project.basedir}/database.sqlite"/>
     <!-- Remove leftover Drupal simpletest databases -->
     <delete>
@@ -484,7 +488,6 @@
       </fileset>
     </delete>
 
-    <mkdir dir="${project.builddir}"/>
     <mkdir dir="${project.toolsdir}"/>
     <mkdir dir="${project.coveragedir}"/>
     <mkdir dir="${project.logdir}"/>
