@@ -498,11 +498,13 @@
           description="Clean up and create artifact directories"
           depends="init">
     <!-- Do not delete builddir. It may contain the build.xml file -->
-    <mkdir dir="${project.toolsdir}"/>
-    <mkdir dir="${project.coveragedir}"/>
-    <mkdir dir="${project.logdir}"/>
-    <mkdir dir="${project.testdir}"/>
-    <delete dir="${project.basedir}/database.sqlite"/>
+    <delete dir="${project.toolsdir}"/>
+    <delete dir="${project.coveragedir}"/>
+    <delete dir="${project.logdir}"/>
+    <delete dir="${project.testdir}"/>
+    <!-- Verbose. We need to make sure any database is deleted. Reinstalling
+         the site with an existing database causes the build to fail. -->
+    <delete file="${project.basedir}/database.sqlite" verbose="true" />
     <!-- Remove leftover Drupal simpletest databases -->
     <delete>
       <fileset dir="${project.basedir}">
