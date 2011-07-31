@@ -385,6 +385,7 @@
       <exclude name="**/*.layouts.inc" />
       <exclude name="**/*.pages_default.inc" />
       <exclude name="**/*.strongarm.inc" />
+      <exclude name="**/*.views_default.inc" />
     </patternset>
 
     <!-- Define file sets for future reference -->
