@@ -496,7 +496,8 @@
 
   <target name="clean"
           description="Clean up and create artifact directories"
-          depends="init">
+          depends="init"
+          unless="project.cleaned">
     <!-- Do not delete builddir. It may contain the build.xml file -->
     <delete dir="${project.toolsdir}"/>
     <delete dir="${project.coveragedir}"/>
@@ -516,6 +517,9 @@
     <mkdir dir="${project.coveragedir}"/>
     <mkdir dir="${project.logdir}"/>
     <mkdir dir="${project.testdir}"/>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.cleaned" value="true"/>
   </target>
 
   <!-- Helper taks to load properties -->
@@ -546,7 +550,6 @@
         <!-- Load the properties.
              Override in case load properties are called multiple times. -->
         <property file="${project.properties.file}" override="true" />
-        <echo>Loaded properties file ${project.properties.file}</echo>
 
         <!-- Set property to prevent unnecessary additional invocations of this target -->
         <property name="project.properties.loaded" value="true" />
