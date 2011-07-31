@@ -405,23 +405,6 @@
   <target name="init"
           depends="load-properties"
           unless="project.initialized">
-    <!-- By default Jenkins runs Phing from the directory containing build.xml.
-         If build.xml is located in a subdirectory - e.g. when using Phing Drupal as
-         a submodule - we need to reset the project basedir and reload properties.
-         NB: This only works if the subdirectory is directly within the Drupal
-             root directory. -->
-    <if>
-      <!-- If cron.php exists then assume we have a Drupal root directory -->
-      <available file="${project.basedir}/../cron.php"/>
-      <then>
-        <property name="project.basedir" value="${project.basedir}/../" override="true"/>
-        <resolvepath propertyName="project.basedir" file="${project.basedir}"/>
-        <phingcall target="load-properties">
-          <property name="project.properties.loaded" value="false" />
-        </phingcall>
-      </then>
-    </if>
-
     <!-- Define working directories -->
     <property name="project.sitesdir" value="${project.basedir}/${project.code.dir}" />
     <property name="project.builddir" value="${project.basedir}/build" />
@@ -532,6 +515,20 @@
         <not><isset property="project.properties.loaded" /></not>
       </or>
       <then>
+        <!-- By default Jenkins runs Phing from the directory containing build.xml.
+             If build.xml is located in a subdirectory - e.g. when using Phing Drupal as
+             a submodule - we need to reset the project basedir and reload properties.
+             NB: This only works if the subdirectory is directly within the Drupal
+                 root directory. -->
+        <if>
+          <!-- If cron.php exists then assume we have a Drupal root directory -->
+          <available file="${project.basedir}/../cron.php"/>
+          <then>
+            <property name="project.basedir" value="${project.basedir}/../" override="true"/>
+            <resolvepath propertyName="project.basedir" file="${project.basedir}"/>
+          </then>
+        </if>
+
         <!-- By default use default properties -->
         <property name="project.properties.file"
                   value="${phing.dir}/build.default.properties" />
