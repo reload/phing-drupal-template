@@ -647,9 +647,10 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
                     --report-file=${project.logdir}/checkstyle-codesniffer.xml
                     --standard=${project.toolsdir}/drupalcs/ruleset.xml
                     --extensions=php,inc
-                    --ignore=*/contrib/*,*/*.features.*,*/*.layout.*,
-                             */*.pages_default.*,*/*strongarm.inc,
-                             */*.views_default.inc,*/*.field_group.inc
+                    --ignore=*/contrib/*,*/*.features.*,*/*.field_group.inc,
+                             */*.layout.*,*/*.pages_default.*,
+                             */*.panels_default.*,*/*strongarm.inc,
+                             */*.views_default.inc,
                     ${project.sitesdir}"
             logoutput="true" />
     </target>
@@ -763,11 +764,12 @@ unless specifically stated why. -->
          as we cannot be held responsible for any problems here. -->
     <patternset id="generated">
       <exclude name="**/*.features.*" />
+      <exclude name="**/*.field_group.inc" />
       <exclude name="**/*.layouts.inc" />
       <exclude name="**/*.pages_default.inc" />
+      <exclude name="**/*.panels_default.inc" />
       <exclude name="**/*.strongarm.inc" />
       <exclude name="**/*.views_default.inc" />
-      <exclude name="**/*.field_group.inc" />
     </patternset>
 
     <!-- Define file sets for future reference -->
