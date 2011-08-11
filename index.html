@@ -1203,9 +1203,10 @@ covers all of the
 <span class="s">                    --report-file=${project.logdir}/checkstyle-codesniffer.xml</span>
 <span class="s">                    --standard=${project.toolsdir}/drupalcs/ruleset.xml</span>
 <span class="s">                    --extensions=php,inc</span>
-<span class="s">                    --ignore=*/contrib/*,*/*.features.*,*/*.layout.*,</span>
-<span class="s">                             */*.pages_default.*,*/*strongarm.inc,</span>
-<span class="s">                             */*.views_default.inc,*/*.field_group.inc</span>
+<span class="s">                    --ignore=*/contrib/*,*/*.features.*,*/*.field_group.inc,</span>
+<span class="s">                             */*.layout.*,*/*.pages_default.*,</span>
+<span class="s">                             */*.panels_default.*,*/*strongarm.inc,</span>
+<span class="s">                             */*.views_default.inc,</span>
 <span class="s">                    ${project.sitesdir}&quot;</span>
             <span class="na">logoutput=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
@@ -1425,11 +1426,12 @@ unless specifically stated why.</p>
             <td class="code">
               <div class="highlight"><pre>    <span class="nt">&lt;patternset</span> <span class="na">id=</span><span class="s">&quot;generated&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.features.*&quot;</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.field_group.inc&quot;</span> <span class="nt">/&gt;</span>
       <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.layouts.inc&quot;</span> <span class="nt">/&gt;</span>
       <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.pages_default.inc&quot;</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.panels_default.inc&quot;</span> <span class="nt">/&gt;</span>
       <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.strongarm.inc&quot;</span> <span class="nt">/&gt;</span>
       <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.views_default.inc&quot;</span> <span class="nt">/&gt;</span>
-      <span class="nt">&lt;exclude</span> <span class="na">name=</span><span class="s">&quot;**/*.field_group.inc&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;/patternset&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-73">
