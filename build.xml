@@ -8,7 +8,7 @@ contiuous integration server to ensure clean code - check for compilation
 errors, run unit tests, lint code and verify that code standards are upheld.
 
 It has been tested with [Jenkins](http://jenkins-ci.org/) but may work with
-other systems
+other systems.
 
 ### Usage
 
