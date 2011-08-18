@@ -532,11 +532,7 @@ specific prefix. -->
     <!-- Setup properties for installing and running Coder Review.
          For some reason these properties are not passed correctly through to
          subtasks when defining them within the phingcall. -->
-    <property name="coder.version" value="7.x-1.x-dev"/>
-    <property name="coder.patch.url"
-          value="http://86.58.184.143/coder-review-checkstyle-xml-fix.patch"/>
-    <property name="coder.patch.dir"
-              value="${project.sitesdir}/modules/contrib/coder/coder_review"/>
+    <property name="coder.version" value="7.x-1.0"/>
     <property name="coder.review.module" value="coder_review"/>
     <property name="coder.review.command" value="coder-review"/>
     <phingcall target="setup-coder-review"/>
@@ -627,18 +623,6 @@ Filter chains does not seem to work in append so we load the file again. -->
     <drush command="pm-download" assume="yes">
       <param>coder-${coder.version}</param>
     </drush>
-
-    <!-- Patch Coder module to add support for piping review output.
-         This is needed as there is no other way to grab the result and write
-         it to a file. -->
-    <httpget url="${coder.patch.url}"
-             dir="${coder.patch.dir}"/>
-    <php function="basename" returnProperty="coder.patch.file">
-      <param value="${coder.patch.url}"/>
-    </php>
-    <patch patchfile="${coder.patch.dir}/${coder.patch.file}"
-           dir="${coder.patch.dir}"
-           haltonfailure="true" />
 
     <!-- Enable module facilitating Coder reviews. This varies between
          Drupal 6 and 7 versions. -->
