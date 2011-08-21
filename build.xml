@@ -490,9 +490,11 @@ statistics. -->
       <format property="check.date.time" pattern="%Y%m%d-%H%M%S"
               locale="en_US"/>
     </tstamp>
+    <!-- Suffixes should be the same as included in the
+         src.php filesets -->
     <phploc reportType="csv"
-            reportName="phploc"
-            reportDirectory="${project.logdir}" countTests="true">
+            reportName="phploc" reportDirectory="${project.logdir}"
+            suffixes="php,module,inc,install,profile" countTests="true">
       <fileset refid="src.php.custom" />
     </phploc>
   </target>
@@ -746,8 +748,8 @@ unless specifically stated why. -->
       <include name="**/*.php" />
       <include name="**/*.module" />
       <include name="**/*.install" />
-      <include name="**/*.profile" />
       <include name="**/*.inc" />
+      <include name="**/*.profile" />
     </patternset>
 
     <patternset id="js">
