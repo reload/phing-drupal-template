@@ -494,7 +494,7 @@ statistics. -->
          src.php filesets -->
     <phploc reportType="csv"
             reportName="phploc" reportDirectory="${project.logdir}"
-            suffixes="php,module,inc,install,profile" countTests="true">
+            suffixes="php,module,inc,install,profile,test" countTests="true">
       <fileset refid="src.php.custom" />
     </phploc>
   </target>
@@ -750,6 +750,7 @@ unless specifically stated why. -->
       <include name="**/*.install" />
       <include name="**/*.inc" />
       <include name="**/*.profile" />
+      <include name="**/*.test" />
     </patternset>
 
     <patternset id="js">
