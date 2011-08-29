@@ -1771,6 +1771,7 @@ root directory.</p>
               <div class="highlight"><pre>    <span class="nt">&lt;if&gt;</span>
       <span class="nt">&lt;not&gt;&lt;available</span> <span class="na">file=</span><span class="s">&quot;${repo.dir}&quot;</span> <span class="nt">/&gt;&lt;/not&gt;</span>
       <span class="nt">&lt;then&gt;</span>
+        <span class="nt">&lt;echo&gt;</span>Cloning ${repo.url} into ${repo.dir}<span class="nt">&lt;/echo&gt;</span>
         <span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${repo.dir}&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-96">
@@ -1782,7 +1783,7 @@ root directory.</p>
              does not seem to work. Use exec instead</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>        <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git clone ${repo.url} ${repo.dir}&quot;</span> <span class="na">logoutput=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+              <div class="highlight"><pre>        <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git clone ${repo.url} ${repo.dir} --depth 1&quot;</span> <span class="nt">/&gt;</span>
       <span class="nt">&lt;/then&gt;</span>
     <span class="nt">&lt;/if&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
@@ -1858,29 +1859,35 @@ root directory.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
-              <p>Download and unpack Rhino</p>
+              <p>Other tasks use this property to determine the location of the
+          <code>js.jar</code> file</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>     <span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${rhino.dir}&quot;</span> <span class="nt">/&gt;</span>
-     <span class="nt">&lt;php</span> <span class="na">function=</span><span class="s">&quot;basename&quot;</span> <span class="na">returnProperty=</span><span class="s">&quot;rhino.zipfile&quot;</span><span class="nt">&gt;</span>
-       <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;${rhino.url}&quot;</span> <span class="nt">/&gt;</span>
-     <span class="nt">&lt;/php&gt;</span>
-     <span class="nt">&lt;httpget</span> <span class="na">url=</span><span class="s">&quot;${rhino.url}&quot;</span>
-              <span class="na">dir=</span><span class="s">&quot;${rhino.dir}&quot;</span><span class="nt">/&gt;</span>
-     <span class="nt">&lt;unzip</span> <span class="na">file=</span><span class="s">&quot;${rhino.dir}/${rhino.zipfile}&quot;</span>
-            <span class="na">todir=</span><span class="s">&quot;${rhino.dir}&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
+              <div class="highlight"><pre>     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;rhino.jar&quot;</span>
+               <span class="na">value=</span><span class="s">&quot;${rhino.dir}/${rhino.basename}/js.jar&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-103">
             <td class="docs">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
-              <p>Other tasks use this property to determine the location of the
-          <code>js.jar</code> file</p>
+              <p>If the Rhino js.jar file is not available then download and
+          unpack Rhino</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;rhino.jar&quot;</span>
-  <span class="na">value=</span><span class="s">&quot;${rhino.dir}/${rhino.basename}/js.jar&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+              <div class="highlight"><pre>     <span class="nt">&lt;if&gt;</span>
+       <span class="nt">&lt;not&gt;&lt;available</span> <span class="na">file=</span><span class="s">&quot;${rhino.jar}&quot;</span><span class="nt">/&gt;&lt;/not&gt;</span>
+       <span class="nt">&lt;then&gt;</span>
+         <span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${rhino.dir}&quot;</span> <span class="nt">/&gt;</span>
+         <span class="nt">&lt;php</span> <span class="na">function=</span><span class="s">&quot;basename&quot;</span> <span class="na">returnProperty=</span><span class="s">&quot;rhino.zipfile&quot;</span><span class="nt">&gt;</span>
+           <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;${rhino.url}&quot;</span> <span class="nt">/&gt;</span>
+         <span class="nt">&lt;/php&gt;</span>
+         <span class="nt">&lt;httpget</span> <span class="na">url=</span><span class="s">&quot;${rhino.url}&quot;</span>
+                  <span class="na">dir=</span><span class="s">&quot;${rhino.dir}&quot;</span><span class="nt">/&gt;</span>
+         <span class="nt">&lt;unzip</span> <span class="na">file=</span><span class="s">&quot;${rhino.dir}/${rhino.zipfile}&quot;</span>
+                <span class="na">todir=</span><span class="s">&quot;${rhino.dir}&quot;</span> <span class="nt">/&gt;</span>
+       <span class="nt">&lt;/then&gt;</span>
+     <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-104">
             <td class="docs">
