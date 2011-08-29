@@ -974,20 +974,26 @@ Configuration of which installation profile and database to use in done in
        <param value=".zip" />
      </php>
 
-     <!-- Download and unpack Rhino -->
-     <mkdir dir="${rhino.dir}" />
-     <php function="basename" returnProperty="rhino.zipfile">
-       <param value="${rhino.url}" />
-     </php>
-     <httpget url="${rhino.url}"
-              dir="${rhino.dir}"/>
-     <unzip file="${rhino.dir}/${rhino.zipfile}"
-            todir="${rhino.dir}" />
-
      <!-- Other tasks use this property to determine the location of the
           `js.jar` file -->
      <property name="rhino.jar"
-  value="${rhino.dir}/${rhino.basename}/js.jar"/>
+               value="${rhino.dir}/${rhino.basename}/js.jar"/>
+
+     <!-- If the Rhino js.jar file is not available then download and
+          unpack Rhino -->
+     <if>
+       <not><available file="${rhino.jar}"/></not>
+       <then>
+         <mkdir dir="${rhino.dir}" />
+         <php function="basename" returnProperty="rhino.zipfile">
+           <param value="${rhino.url}" />
+         </php>
+         <httpget url="${rhino.url}"
+                  dir="${rhino.dir}"/>
+         <unzip file="${rhino.dir}/${rhino.zipfile}"
+                todir="${rhino.dir}" />
+       </then>
+     </if>
 
      <!-- Set property to prevent unnecessary additional invocations of this
           target -->
