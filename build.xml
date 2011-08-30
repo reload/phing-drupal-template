@@ -486,10 +486,6 @@ statistics. -->
   <target name="phploc"
           description="Generate phploc.csv using phploc"
           depends="init, setup-phing-phploc">
-    <tstamp>
-      <format property="check.date.time" pattern="%Y%m%d-%H%M%S"
-              locale="en_US"/>
-    </tstamp>
     <!-- Suffixes should be the same as included in the
          src.php filesets -->
     <phploc reportType="csv"
