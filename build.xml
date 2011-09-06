@@ -185,8 +185,8 @@ standard is followed and detect potential problems. By default
 
 <!-- #### jslint a file
 
-No need to run init or setup tasks here. This task should only be called from
-parent `lint-js` tasks. -->
+No need to run `init` or setup tasks here. This task should only be called
+from parent `lint-js` tasks. -->
   <target name="jslint-file">
     <echo>Linting file: ${absfilename}</echo>
 
@@ -282,8 +282,8 @@ Checks code against [CSS Lint](http://www.csslint.net/) to help point out proble
 
 <!-- #### csslint a file
 
-No need to run init or setup tasks here. This task should only be called from
-parent `lint-css` tasks. -->
+No need to run `init` or setup tasks here. This task should only be called
+from parent `lint-css` tasks. -->
   <target name="csslint-file">
     <echo>Linting file: ${absfilename}</echo>
 
@@ -425,7 +425,7 @@ This belongs on developer environments - not VCS. -->
 
 <!-- #### Check an individual file for debug code
 
-No need to run init here. This task should only be called through parent
+No need to run `init` here. This task should only be called through parent
 `check-debug-*` tasks. -->
   <target name="check-debug-file">
     <echo>Checking file for debug statements: ${absfilename}</echo>
@@ -543,9 +543,12 @@ specific prefix. -->
 <!-- #### Perform coder review
 
 This tasks requires properties set by calling tasks coder-review-d6 or
-coder-review-d7 -->
+coder-review-d7.
+
+No need to run `init` here. This task should only be called from parent
+`coder-review-*` tasks. -->
   <target name="coder-review"
-          depends="init, setup-phing-drush">
+          depends="setup-phing-drush">
     <!-- Get a list of modules and themes matching the project prefix.
          These are the ones we are going to review. -->
     <drush command="pm-list" pipe="projects" />
@@ -740,6 +743,8 @@ unless specifically stated why. -->
               value="${project.builddir}/tests" />
 
     <!-- Define pattern sets for future reference -->
+
+    <!-- PHP files -->
     <patternset id="php">
       <include name="**/*.php" />
       <include name="**/*.module" />
@@ -749,13 +754,16 @@ unless specifically stated why. -->
       <include name="**/*.test" />
     </patternset>
 
+    <!-- Javascript files -->
     <patternset id="js">
       <include name="**/*.js" />
       <!-- Minimized JavaScript files should not be analyzed.
-           In their optimized state -->
+           In their optimized state they can not be expexted
+           to conform to coding standards. -->
       <exclude name="**/*.min.js" />
     </patternset>
 
+    <!-- CSS files -->
     <patternset id="css">
       <include name="**/*.css" />
     </patternset>
@@ -786,6 +794,7 @@ unless specifically stated why. -->
       <include name="**/*.inc" />
     </fileset>
 
+    <!-- Custom PHP files -->
     <fileset id="src.php.custom" dir="${project.sitesdir}">
       <patternset refid="php"/>
       <patternset refid="contrib"/>
@@ -922,7 +931,7 @@ Configuration of which installation profile and database to use in done in
   <target name="site-install"
           depends="init, setup-phing-drush">
     <drush command="site-install" assume="yes">
-      <option name="db-url">${db.url}</option>
+      <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
     </drush>
   </target>
@@ -935,7 +944,9 @@ Configuration of which installation profile and database to use in done in
       <then>
         <echo>Cloning ${repo.url} into ${repo.dir}</echo>
         <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
-             does not seem to work. Use exec instead -->
+             does not seem to work. Use exec instead.
+
+             Do a [shallow copy](https://git.wiki.kernel.org/index.php/GitFaq#How_do_I_do_a_quick_clone_without_history_revisions.3F) to improve efficiency. -->
         <exec command="git clone ${repo.url} ${repo.dir} --depth 1" />
       </then>
     </if>
