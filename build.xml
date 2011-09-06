@@ -19,8 +19,10 @@ The template can be used in several ways:
 to the root directory of your Drupal project and modify it as needed.
 
 * As the actual build file for your project. You can configure most aspects of
-the build according to your project through a properties file. Download
-the entire project and place it in a subfolder or use it as a
+the build according to your project through a properties file. This works
+whether you have your entire Drupal project in VCS or use
+[drush_make](http://drupal.org/project/drush_make). Download the entire
+project and place it in a subfolder or use it as a
 [git submodule](http://kernel.org/pub/software/scm/git/docs/git-submodule.html).
 Using the `build` subfolder from the root directory is recommended. Copy the
 `build.default.properties` file to the root directory, rename it
@@ -126,7 +128,14 @@ complies with coding standards. -->
                                   phpmd,
                                   phpcpd">
     <!-- Moved inside target to support properties in target name -->
-    <phingcall target="coder-review-d${drupal.version}" />
+    <phingcall target="coder-review-d${drupal.version}">
+      <!-- Run the target as if it was executed from the Drupal root
+           directory. -->
+      <property name="project.basedir" value="${project.drupal.dir}"/>
+      <!-- Make will run again as a part of the `init` task. We already have
+           a working site so skip that. -->
+      <property name="drupal.make.skip" value="1"/>
+    </phingcall>
   </target>
 
 <!-- ### Generate documentation
@@ -726,11 +735,104 @@ This target sets up many of the common resources used throughout the build.
 All other targets except dependencies for this target should depend on this
 unless specifically stated why. -->
   <target name="init"
-          depends="load-properties"
+          depends="load-properties, setup-dirs, make, setup-filesets"
           unless="project.initialized">
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.initialized" value="true"/>
+  </target>
+
+<!-- ### Load properties
+
+Loads a set of project specific properties from a `.properties` file.
+
+These properties contain information regarding the individual project and/or
+environment such as which version of Drupal you are using, how to create a
+database and the names of your custom modules.
+
+All available properties are described and set to a default value in
+[`build.default.properties`](https://raw.github.com/reload/phing-drupal-template/master/build.default.properties).
+You can create your own properties file by copying the
+`build.default.properties` file to the root directory, rename it
+`build.properties` and modify it according to your project. -->
+  <target name="load-properties">
+    <!-- Use condition instead of unless property as we cannot unset properties in Phing -->
+    <if>
+      <or>
+        <!-- `istrue` evaluates to true is value is not set we need to check
+             `isset` as well -->
+        <not><istrue value="${project.properties.loaded}" /></not>
+        <not><isset property="project.properties.loaded" /></not>
+      </or>
+      <then>
+<!-- By default Jenkins runs Phing from the directory containing the build
+file.  If this file is located in a subdirectory - e.g. when using Phing Drupal as a submodule - we need to reset the project basedir and reload properties.
+
+NB: This only works if the subdirectory is directly within the Drupal
+root directory. -->
+        <if>
+          <!-- If `build.properties` exists then assume we have a
+               project root directory -->
+          <available file="${project.basedir}/../build.properties"/>
+          <then>
+            <property name="project.basedir" value="${project.basedir}/../"
+                      override="true"/>
+            <resolvepath propertyName="project.basedir"
+                         file="${project.basedir}"/>
+          </then>
+        </if>
+
+        <!-- By default use default properties file
+             `build.default.properties` -->
+        <property name="project.properties.file"
+                  value="${phing.dir}/build.default.properties" />
+        <!-- Allow override using `build.properties` in build file
+             directory -->
+        <php function="dirname" returnProperty="phing.dir">
+          <param value="${phing.file}"/>
+        </php>
+        <available file="${phing.dir}/build.properties"
+                   property="project.properties.file"
+                   value="${phing.dir}/build.properties" />
+        <!-- Allow override using `build.properties` in project base
+             directory -->
+        <available file="${project.basedir}/build.properties"
+                   property="project.properties.file"
+                   value="${project.basedir}/build.properties" />
+
+        <!-- Load the properties.
+             Override in case `load-properties` are called multiple times. -->
+        <property file="${project.properties.file}" override="true" />
+
+        <!-- Set property to prevent unnecessary additional invocations of this target -->
+        <property name="project.properties.loaded" value="true" />
+      </then>
+    </if>
+  </target>
+
+<!-- ### Setup directories
+
+Define working directories - where the individual parts of the build are and
+should be located. These are used in other tasks.
+
+This is part of the initialization of the build. This target should only be
+called from `init` target. -->
+  <target name="setup-dirs"
+          depends="load-properties">
     <!-- Define working directories -->
+    <if>
+      <isset property="drupal.make.dir"/>
+      <then>
+        <property name="project.drupal.dir"
+                value="${project.basedir}/${drupal.make.dir}" />
+      </then>
+      <else>
+        <property name="project.drupal.dir"
+                value="${project.basedir}" />
+      </else>
+    </if>
+
     <property name="project.sitesdir"
-              value="${project.basedir}/${project.code.dir}" />
+              value="${project.drupal.dir}/${project.code.dir}" />
     <property name="project.builddir"
               value="${project.basedir}/build" />
     <property name="project.toolsdir"
@@ -741,7 +843,85 @@ unless specifically stated why. -->
               value="${project.builddir}/logs" />
     <property name="project.testdir"
               value="${project.builddir}/tests" />
+  </target>
 
+<!-- ### Drush Make
+
+Download and install the source code for the site using Drush Make.
+
+This target is only executed if the project uses make files as configured
+in the `build.properties` file. Execution can also be skipped by setting the drupal.make.skip property from the command line or in other targets.
+
+This is part of the initialization of the build. This target should only be
+called from `init` target. -->
+  <target name="make"
+          depends="load-properties, setup-phing-drush"
+          if="drupal.make.file">
+    <if>
+      <or>
+        <not><isset property="drupal.make.skip"/></not>
+        <not><istrue value="${drupal.make.skip}"/></not>
+      </or>
+      <then>
+        <!-- Delete any prexisting builds -->
+        <delete dir="${project.drupal.dir}"/>
+
+        <!-- If the make file does not include a core Drupal project we need
+             to download one separately. This should be defined in
+             `build.properties`. -->
+        <if>
+          <and>
+            <isset property="drupal.make.nocore"/>
+            <istrue value="${drupal.make.nocore}"/>
+          </and>
+          <then>
+            <!-- Download the appropriate version of Drupal -->
+            <drush command="dl" assume="yes">
+              <param>drupal-${drupal.version}</param>
+              <option name="drupal-project-rename">${drupal.make.dir}</option>
+            </drush>
+
+            <!-- Make the project -->
+            <drush command="make" assume="yes">
+              <param>${drupal.make.file}</param>
+              <option name="contrib-destination">${drupal.make.dir}/profiles/${drupal.profile}/</option>
+              <option name="no-core"/>
+            </drush>
+
+            <!-- Copy the install profile bundled with the make file to the
+                 appropriate directory. -->
+            <copy todir="${project.drupal.dir}/profiles/${drupal.profile}/">
+              <fileset dir="${project.basedir}">
+                <include name="${drupal.profile}.*" />
+              </fileset>
+            </copy>
+          </then>
+          <else>
+            <drush command="make" assume="yes">
+              <param>${drupal.make.file}</param>
+              <option name="contrib-destination">${drupal.make.dir}/profiles/${drupal.profile}/</option>
+            </drush>
+          </else>
+        </if>
+      </then>
+      <else>
+        <echo>
+          Skipping drush make.${line.separator}
+          drupal.make.skip has been set to ${drupal.make.skip}.
+        </echo>
+      </else>
+    </if>
+  </target>
+
+<!-- ### Setup file sets
+
+Setup file sets - patterns for different aspects of the source code.
+These are used in other tasks.
+
+This is part of the initialization of the build. This target should only be
+called from `init` target. -->
+  <target name="setup-filesets"
+          depends="load-properties">
     <!-- Define pattern sets for future reference -->
 
     <!-- PHP files -->
@@ -789,7 +969,9 @@ unless specifically stated why. -->
     </patternset>
 
     <!-- Define file sets for future reference -->
-    <fileset  id="src.php" dir="${project.basedir}">
+
+    <!-- All PHP files -->
+    <fileset  id="src.php" dir="${project.drupal.dir}">
       <include name="**/*.php" />
       <include name="**/*.inc" />
     </fileset>
@@ -801,100 +983,34 @@ unless specifically stated why. -->
       <patternset refid="generated"/>
     </fileset>
 
-    <fileset id="src.js" dir="${project.basedir}">
+    <!-- All Javascript files -->
+    <fileset id="src.js" dir="${project.drupal.dir}">
       <patternset refid="js" />
     </fileset>
 
-    <fileset id="src.css.custom" dir="${project.sitesdir}">
-      <patternset refid="css" />
-      <patternset refid="contrib" />
-    </fileset>
-
-    <fileset id="src.css" dir="${project.basedir}">
-      <patternset refid="css" />
-    </fileset>
-
+    <!-- Custom Javascript files -->
     <fileset id="src.js.custom" dir="${project.sitesdir}">
       <patternset refid="js" />
       <patternset refid="contrib" />
     </fileset>
 
-    <!-- Set property to prevent target from being executed multiple times -->
-    <property name="project.initialized" value="true"/>
-  </target>
+    <!-- All CSS files -->
+    <fileset id="src.css" dir="${project.basedir}">
+      <patternset refid="css" />
+    </fileset>
 
-<!-- ### Load properties
+    <!-- Custom CSS files -->
+    <fileset id="src.css.custom" dir="${project.sitesdir}">
+      <patternset refid="css" />
+      <patternset refid="contrib" />
+    </fileset>
 
-Loads a set of project specific properties from a `.properties` file.
-
-These properties contain information regarding the individual project and/or
-environment such as which version of Drupal you are using, how to create a
-database and the names of your custom modules.
-
-All available properties are described and set to a default value in
-[`build.default.properties`](https://raw.github.com/reload/phing-drupal-template/master/build.default.properties).
-You can create your own properties file by copying the
-`build.default.properties` file to the root directory, rename it
-`build.properties` and modify it according to your project. -->
-  <target name="load-properties">
-    <!-- Use condition instead of unless property as we cannot unset properties in Phing -->
-    <if>
-      <or>
-        <!-- `istrue` evaluates to true is value is not set we need to check
-             `isset` as well -->
-        <not><istrue value="${project.properties.loaded}" /></not>
-        <not><isset property="project.properties.loaded" /></not>
-      </or>
-      <then>
-<!-- By default Jenkins runs Phing from the directory containing the build
-file.  If this file is located in a subdirectory - e.g. when using Phing Drupal as a submodule - we need to reset the project basedir and reload properties.
-
-NB: This only works if the subdirectory is directly within the Drupal
-root directory. -->
-        <if>
-          <!-- If `cron.php` exists then assume we have a Drupal root
-               directory -->
-          <available file="${project.basedir}/../cron.php"/>
-          <then>
-            <property name="project.basedir" value="${project.basedir}/../"
-                      override="true"/>
-            <resolvepath propertyName="project.basedir"
-                         file="${project.basedir}"/>
-          </then>
-        </if>
-
-        <!-- By default use default properties file
-             `build.default.properties` -->
-        <property name="project.properties.file"
-                  value="${phing.dir}/build.default.properties" />
-        <!-- Allow override using `build.properties` in build file
-             directory -->
-        <php function="dirname" returnProperty="phing.dir">
-          <param value="${phing.file}"/>
-        </php>
-        <available file="${phing.dir}/build.properties"
-                   property="project.properties.file"
-                   value="${phing.dir}/build.properties" />
-        <!-- Allow override using `build.properties` in project base
-             directory -->
-        <available file="${project.basedir}/build.properties"
-                   property="project.properties.file"
-                   value="${project.basedir}/build.properties" />
-
-        <!-- Load the properties.
-             Override in case `load-properties` are called multiple times. -->
-        <property file="${project.properties.file}" override="true" />
-
-        <!-- Set property to prevent unnecessary additional invocations of this target -->
-        <property name="project.properties.loaded" value="true" />
-      </then>
-    </if>
   </target>
 
 <!-- ### Clean working environment  -->
   <target name="clean"
           description="Clean up and create artifact directories"
-          depends="init"
+          depends="setup-dirs"
           unless="project.cleaned">
     <!-- Delete any existing artifacts from a previous build.
          Do not delete builddir. It may contain the build file! -->
@@ -904,7 +1020,7 @@ root directory. -->
     <delete dir="${project.testdir}"/>
     <!-- Verbose. We need to make sure any database is deleted. Reinstalling
          the site with an existing database causes the build to fail. -->
-    <delete file="${project.basedir}/database.sqlite" verbose="true" />
+    <delete file="${project.drupal.dir}/database.sqlite" verbose="true" />
     <!-- Remove leftover Drupal simpletest databases -->
     <delete>
       <fileset dir="${project.basedir}">
@@ -934,6 +1050,13 @@ Configuration of which installation profile and database to use in done in
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
     </drush>
+    <!-- Fix permissions for the default site directory and settings. The
+         owner must be able to delete the directories during subsequent
+         builds. -->
+    <chmod file="${project.drupal.dir}/sites/default/"
+                mode="0755" failonerror="true"/>
+    <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
+           mode="0755" failonerror="true"/>
   </target>
 
   <!-- ### Clone a git repository -->
@@ -954,7 +1077,7 @@ Configuration of which installation profile and database to use in done in
 
   <!-- ### Setup Phing Drush integration -->
   <target name="setup-phing-drush"
-          depends="init" >
+          depends="setup-dirs" >
     <!-- Clone the project from Drupal.org -->
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.toolsdir}/phing-drush"/>
@@ -969,7 +1092,7 @@ Configuration of which installation profile and database to use in done in
 
 [Mozilla Rhino](http://www.mozilla.org/rhino/) is an open-source implementation of JavaScript written in Java. -->
    <target name="setup-rhino"
-           depends="init"
+           depends="setup-dirs"
            unless="project.rhino.setup">
      <property name="rhino.dir"
                value="${project.toolsdir}/rhino" />
