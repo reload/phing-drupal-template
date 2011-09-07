@@ -656,7 +656,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
             depends="init">
       <!-- Clone a repository containing Drupal code guidelines for
            PHP_CodeSniffer. -->
-      <phingcall target="setupgitrepo">
+      <phingcall target="setup-git-repo">
         <property name="repo.dir" value="${project.toolsdir}/drupalcs"/>
         <property name="repo.url" value="${phpcs.drupalcs.repository}" />
       </phingcall>
