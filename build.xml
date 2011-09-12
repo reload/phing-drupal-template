@@ -565,7 +565,7 @@ No need to run `init` here. This task should only be called from parent
     <drush command="pm-list" pipe="projects" />
     <!-- The project list is piped through a file as this seems to be
          the only way to handle filtering of values in Phing. -->
-    <delete file="${project.basedir}/build/logs/projects.txt" />
+    <delete file="${project.logdir}/projects.txt" />
     <append text="${projects}" destFile="${project.logdir}/projects.txt" />
     <loadfile property="project.code.projects"
               file="${project.logdir}/projects.txt">
@@ -698,7 +698,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
 Uses [phpDocumentor](http://www.phpdoc.org/) to generate documentation. -->
   <target name="phpdoc"
           description="Generate API documentation using phpDocumentor">
-    <mkdir dir="${project.buildir/api"/>
+    <mkdir dir="${project.buildir}/api"/>
     <phpdoc title="API Documentation"
             destdir="${project.builddir}/api"
             sourcecode="php"
@@ -715,7 +715,7 @@ colored error-sections using
   <target name="phpcb"
           description="Aggregate tool output with PHP_CodeBrowser"
           depends="init">
-    <mkdir dir="${project.basedir}/build/code-browser"/>
+    <mkdir dir="${project.builddir}/code-browser"/>
     <!-- There is no Phing task for PHP CodeBrowser so do a plain execute. -->
     <exec command="phpcb  --log ${project.logdir}
                           --source ${project.basedir}
@@ -818,7 +818,6 @@ This is part of the initialization of the build. This target should only be
 called from `init` target. -->
   <target name="setup-dirs"
           depends="load-properties">
-    <!-- Define working directories -->
     <if>
       <isset property="drupal.make.dir"/>
       <then>
