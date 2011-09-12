@@ -1085,6 +1085,9 @@ Configuration of which installation profile and database to use in done in
     <!-- Register as custom Phing task -->
     <taskdef name="drush" classname="DrushTask"
              classpath="${project.toolsdir}/phing-drush" />
+
+    <!-- Run drush from the project Drupal directory -->
+    <property name="drush.root" value="${project.drupal.dir}"/>
   </target>
 
    <!-- ### Setup Rhino
