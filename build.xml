@@ -132,6 +132,8 @@ complies with coding standards. -->
       <!-- Run the target as if it was executed from the Drupal root
            directory. -->
       <property name="project.basedir" value="${project.drupal.dir}"/>
+      <!-- We already have a clean environment so avoid further cleaning. -->
+      <property name="project.cleaned" value="1"/>
       <!-- Make will run again as a part of the `init` task. We already have
            a working site so skip that. -->
       <property name="drupal.make.skip" value="1"/>
