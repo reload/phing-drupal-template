@@ -896,7 +896,7 @@ called from `init` target. -->
 
             <!-- Make the project in the project code directory. If using
                  a directory inside the `sites` folder modules can be tested
-                 faster and easier when using the minimal profile. ->
+                 faster and easier when using the minimal profile. -->
             <drush command="make" assume="yes">
               <param>${drupal.make.file}</param>
               <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
