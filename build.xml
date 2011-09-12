@@ -562,7 +562,7 @@ No need to run `init` here. This task should only be called from parent
           depends="setup-phing-drush">
     <!-- Get a list of modules and themes matching the project prefix.
          These are the ones we are going to review. -->
-    <drush command="pm-list" pipe="projects" />
+    <drush command="pm-list" pipe="true" returnProperty="projects" />
     <!-- The project list is piped through a file as this seems to be
          the only way to handle filtering of values in Phing. -->
     <delete file="${project.logdir}/projects.txt" />
@@ -594,7 +594,8 @@ No need to run `init` here. This task should only be called from parent
          returnProperty="project.code.custom"/>
 
     <!-- Execute coder review and output results in XML format-->
-    <drush command="${coder.review.command}" assume="yes" pipe="xml">
+    <drush command="${coder.review.command}" assume="yes"
+           pipe="yes" returnProperty="xml">
       <param>no-empty</param>
       <param>xml</param>
       <param>minor</param>
@@ -1089,6 +1090,25 @@ Configuration of which installation profile and database to use in done in
     </if>
   </target>
 
+  <!-- ### Download and apply a patch -->
+  <target name="apply-http-patch">
+    <php function="basename" returnProperty="patch.file">
+      <param>${patch.url}</param>
+    </php>
+
+    <!-- If patch has already been downloaded then we assume it has also been
+         applied -->
+    <if>
+      <not><available file="${project.toolsdir}/${patch.file}"/></not>
+      <then>
+        <httpget url="${patch.url}"
+                 dir="${project.toolsdir}"/>
+        <patch patchfile="${project.toolsdir}/${patch.file}"
+               dir="${patch.dir}" haltonfailure="true"/>
+      </then>
+    </if>
+  </target>
+
   <!-- ### Setup Phing Drush integration -->
   <target name="setup-phing-drush"
           depends="setup-dirs" >
@@ -1097,6 +1117,15 @@ Configuration of which installation profile and database to use in done in
       <property name="repo.dir" value="${project.toolsdir}/phing-drush"/>
       <property name="repo.url" value="${phing.drush.repository}" />
     </phingcall>
+
+    <!-- Patch Drush Phing task to [separate piping from output
+         capturing](http://drupal.org/node/1276396).
+         This is necessary to work with tests from Phing.-->
+    <phingcall target="apply-http-patch">
+      <property name="patch.url" value="http://drupal.org/files/issues/1276396-drush-task-pipe-return-property.patch"/>
+      <property name="patch.dir" value="${project.toolsdir}/phing-drush" />
+    </phingcall>
+
     <!-- Register as custom Phing task -->
     <taskdef name="drush" classname="DrushTask"
              classpath="${project.toolsdir}/phing-drush" />
