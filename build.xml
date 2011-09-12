@@ -893,10 +893,12 @@ called from `init` target. -->
               <option name="drupal-project-rename">${drupal.make.dir}</option>
             </drush>
 
-            <!-- Make the project -->
+            <!-- Make the project in the project code directory. If using
+                 a directory inside the `sites` folder modules can be tested
+                 faster and easier when using the minimal profile. ->
             <drush command="make" assume="yes">
               <param>${drupal.make.file}</param>
-              <option name="contrib-destination">${drupal.make.dir}/profiles/${drupal.profile}/</option>
+              <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
               <option name="no-core"/>
             </drush>
 
@@ -911,7 +913,7 @@ called from `init` target. -->
           <else>
             <drush command="make" assume="yes">
               <param>${drupal.make.file}</param>
-              <option name="contrib-destination">${drupal.make.dir}/profiles/${drupal.profile}/</option>
+              <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
             </drush>
           </else>
         </if>
