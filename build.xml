@@ -116,17 +116,15 @@ time and is largely obsolete when using GitHub. -->
 
 <!-- ### Verify code consistency
 
-Make sure that our code is clean and functional.
-
-Do not run `simpletest` for now until we figure out how to speed up tests
-and/or only run for custom code -->
+Make sure that our code is clean and functional. -->
   <target name="verify" depends="init,
                                  clean,
                                  lint-php-custom,
                                  lint-js-custom,
                                  lint-css-custom,
                                  check-php-debug,
-                                 check-js-debug"/>
+                                 check-js-debug,
+                                 simpletest"/>
 
 <!-- ### Analyze code
 
@@ -701,19 +699,52 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
   <!-- ### Run simpletests -->
   <target name="simpletest"
           description="Run all unit tests"
-          depends="init, clean, setup-phing-drush, site-install">
-    <!-- Download and enable simpletest module -->
-    <drush command="pm-download" assume="yes">
-      <param>simpletest</param>
-    </drush>
-    <drush command="pm-enable" assume="yes">
-      <param>simpletest</param>
-    </drush>
-    <drush command="test-run" assume="yes">
-      <option name="all" />
-      <!-- XML output requires a drush 4.5 or
-          [a patch](http://drupal.org/node/1109408). -->
-      <option name="xml">${project.testdir}/tests</option>
+          depends="init, setup-phing-drush, site-install">
+    <!-- Enable simpletest module. If using Drupal 6 the module will be
+         downloaded as well. -->
+    <phingcall target="enable-module">
+      <property name="module" value="simpletest"/>
+    </phingcall>
+
+    <!-- Get a list of all available test cases -->
+    <drush command="test-run" returnProperty="tests" returnGlue="${line.separator}"/>
+
+    <!-- The project list is piped through a file as this seems to be
+         the only way to handle filtering of values in Phing. -->
+    <delete file="${project.logdir}/tests.txt" />
+    <append text="${tests}" destFile="${project.logdir}/tests.txt" />
+
+    <!-- Build a regular expression to match test groups based on the
+         set properties. The expression should be in the format
+         `^\s?(prefix1|prefix2|prefix3)_`. -->
+    <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
+         returnProperty="project.code.prefix.regex"/>
+
+    <!-- Load the list of tests but keep only the test groups matching our
+         prefixes. -->
+    <loadfile property="project.code.tests"
+              file="${project.logdir}/tests.txt">
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
+        </linecontainsregexp>
+      </filterchain>
+    </loadfile>
+
+<!-- Transform the list of filtered test groups in the form
+
+    Groupname 1             Groupname 1
+    Groupname 2             Groupname 2
+
+into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
+    <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.code.tests}', PREG_SPLIT_NO_EMPTY))))"
+         returnProperty="project.code.tests"/>
+
+    <!-- Run the tests and generate JUnit XML reports. This requires
+         Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
+    <drush command="test-run">
+      <param>${project.code.tests}</param>
+      <option name="xml">${project.testdir}</option>
     </drush>
   </target>
 
@@ -1083,6 +1114,39 @@ Configuration of which installation profile and database to use in done in
            mode="0755" failonerror="true"/>
     <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
            mode="0755" failonerror="true"/>
+  </target>
+
+  <!-- ### Download and enable a project/module -->
+  <target name="enable-module"
+          depends="setup-phing-drush">
+    <!-- If project is not set then we assume that the module name is also
+         the project name. -->
+    <if>
+      <not><isset property="project"/></not>
+      <then>
+        <property name="project" value="${module}"/>
+      </then>
+    </if>
+
+    <!-- If the module is not already available then download it -->
+    <drush command="pm-list" returnProperty="modules.available"/>
+    <php function="strpos" returnProperty="module.available">
+      <param>${modules.available}</param>
+      <param>${module}</param>
+    </php>
+    <if>
+      <not><istrue value="${module.available}"/></not>
+      <then>
+        <drush command="pm-download" assume="yes">
+          <param>${project}</param>
+        </drush>
+      </then>
+    </if>
+
+    <!-- Enable the module -->
+    <drush command="pm-enable" assume="yes">
+      <param>${module}</param>
+    </drush>
   </target>
 
   <!-- ### Clone a git repository -->
