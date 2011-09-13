@@ -579,7 +579,7 @@ No need to run `init` here. This task should only be called from parent
     <delete file="${project.logdir}/projects.txt" />
     <append text="${projects}" destFile="${project.logdir}/projects.txt" />
 
-    <!-- Build a regular expression to match modules against based on the
+    <!-- Build a regular expression to match modules based on the
          set properties. The propery can contain prefixes separated by comma
          and/or spaces. The expression should be in the format
          `^(prefix1|prefix2|prefix3)_`. -->
@@ -1080,7 +1080,7 @@ Configuration of which installation profile and database to use in done in
          owner must be able to delete the directories during subsequent
          builds. -->
     <chmod file="${project.drupal.dir}/sites/default/"
-                mode="0755" failonerror="true"/>
+           mode="0755" failonerror="true"/>
     <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
            mode="0755" failonerror="true"/>
   </target>
