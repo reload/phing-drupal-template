@@ -1011,8 +1011,8 @@ called from `init` target. -->
     </patternset>
 
     <!-- Directories for community contributed code. We exclude these from
-         code analysis
-         as we cannot be held responsible for any problems here. -->
+         code analysis as we cannot be held responsible for any problems
+         here. -->
     <patternset id="contrib">
       <exclude name="**/contrib/**/*.*" />
       <exclude name="**/libraries/**/*.*" />
