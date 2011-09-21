@@ -1033,9 +1033,8 @@ called from `init` target. -->
     <!-- Define file sets for future reference -->
 
     <!-- All PHP files -->
-    <fileset  id="src.php" dir="${project.drupal.dir}">
-      <include name="**/*.php" />
-      <include name="**/*.inc" />
+    <fileset id="src.php" dir="${project.drupal.dir}">
+      <patternset refid="php"/>
     </fileset>
 
     <!-- Custom PHP files -->
