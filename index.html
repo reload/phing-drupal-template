@@ -187,7 +187,7 @@ pear install -a phpunit/PHP_CodeBrowser
 <ul>
 <li><a href="http://drupal.org/project/drush">Drush</a>: The Drupal shell.
 <a href="http://drupalcode.org/project/drush.git/blob/HEAD:/README.txt">Installation instructions</a>.</li>
-<li>PHP 5.2.7 or newer</li>
+<li>PHP 5.2.7 or newer with sqlite extension</li>
 <li>Java Runtime Environment</li>
 </ul>
 
@@ -1907,8 +1907,8 @@ called from <code>init</code> target.</p>
                 <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
               <p>Directories for community contributed code. We exclude these from
-         code analysis
-         as we cannot be held responsible for any problems here.</p>
+         code analysis as we cannot be held responsible for any problems
+         here.</p>
             </td>
             <td class="code">
               <div class="highlight"><pre>    <span class="nt">&lt;patternset</span> <span class="na">id=</span><span class="s">&quot;contrib&quot;</span><span class="nt">&gt;</span>
@@ -1953,9 +1953,8 @@ called from <code>init</code> target.</p>
               <p>All PHP files</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>    <span class="nt">&lt;fileset</span>  <span class="na">id=</span><span class="s">&quot;src.php&quot;</span> <span class="na">dir=</span><span class="s">&quot;${project.drupal.dir}&quot;</span><span class="nt">&gt;</span>
-      <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;**/*.php&quot;</span> <span class="nt">/&gt;</span>
-      <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;**/*.inc&quot;</span> <span class="nt">/&gt;</span>
+              <div class="highlight"><pre>    <span class="nt">&lt;fileset</span> <span class="na">id=</span><span class="s">&quot;src.php&quot;</span> <span class="na">dir=</span><span class="s">&quot;${project.drupal.dir}&quot;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;patternset</span> <span class="na">refid=</span><span class="s">&quot;php&quot;</span><span class="nt">/&gt;</span>
     <span class="nt">&lt;/fileset&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-108">
