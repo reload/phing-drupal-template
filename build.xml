@@ -173,7 +173,7 @@ Check files for syntax errors. -->
   <target name="lint-php"
           description="Check all PHP files for syntax errors using PHPLint"
           depends="init">
-    <phplint>
+    <phplint haltonfailure="true">
       <fileset refid="src.php" />
     </phplint>
   </target>
@@ -181,7 +181,7 @@ Check files for syntax errors. -->
   <target name="lint-php-custom"
           description="Check custom PHP files for syntax errors using PHPLint"
           depends="init">
-    <phplint>
+    <phplint haltonfailure="true">
       <fileset refid="src.php.custom" />
     </phplint>
   </target>
