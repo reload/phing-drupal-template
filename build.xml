@@ -149,7 +149,7 @@ complies with coding standards. -->
       <property name="project.cleaned" value="1"/>
       <!-- Make will run again as a part of the `init` target. We already have
            a working site so skip that. -->
-      <property name="drupal.make.skip" value="1"/>
+      <property name="project.make.skip" value="1"/>
     </phingcall>
   </target>
 
@@ -726,7 +726,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
 
     <!-- Load the list of tests but keep only the test groups matching our
          prefixes. -->
-    <loadfile property="project.code.tests"
+    <loadfile property="project.simpletest.tests"
               file="${project.logdir}/tests.txt">
       <filterchain>
         <linecontainsregexp>
@@ -741,13 +741,13 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
     Groupname 2             Groupname 2
 
 into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
-    <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.code.tests}', PREG_SPLIT_NO_EMPTY))))"
-         returnProperty="project.code.tests"/>
+    <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
+         returnProperty="project.simpletest.tests"/>
 
     <!-- Run the tests and generate JUnit XML reports. This requires
          Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
     <drush command="test-run">
-      <param>${project.code.tests}</param>
+      <param>${project.simpletest.tests}</param>
       <option name="xml">${project.testdir}</option>
     </drush>
   </target>
@@ -910,7 +910,8 @@ called from `init` target. -->
 Download and install the source code for the site using Drush Make.
 
 This target is only executed if the project uses make files as configured
-in the `build.properties` file. Execution can also be skipped by setting the drupal.make.skip property from the command line or in other targets.
+in the `build.properties` file. Execution can also be skipped by setting the
+`project.make.skip` property from the command line or in other targets.
 
 This is part of the initialization of the build. This target should only be
 called from `init` target. -->
@@ -919,8 +920,8 @@ called from `init` target. -->
           if="drupal.make.file">
     <if>
       <or>
-        <not><isset property="drupal.make.skip"/></not>
-        <not><istrue value="${drupal.make.skip}"/></not>
+        <not><isset property="project.make.skip"/></not>
+        <not><istrue value="${project.make.skip}"/></not>
       </or>
       <then>
         <!-- Delete any prexisting builds -->
