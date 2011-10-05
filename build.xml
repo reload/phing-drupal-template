@@ -1106,7 +1106,8 @@ This initializes a Drupal site using a installation profile.
 Configuration of which installation profile and database to use in done in
 `build.properties`. -->
   <target name="site-install"
-          depends="init, setup-phing-drush">
+          depends="init, setup-phing-drush"
+          unless="project.installed">
     <drush command="site-install" assume="yes">
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
@@ -1118,6 +1119,9 @@ Configuration of which installation profile and database to use in done in
            mode="0755" failonerror="true"/>
     <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
            mode="0755" failonerror="true"/>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.installed" value="true"/>
   </target>
 
   <!-- ### Download and enable a project/module -->
