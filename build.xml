@@ -1197,14 +1197,6 @@ Configuration of which installation profile and database to use in done in
       <property name="repo.url" value="${phing.drush.repository}" />
     </phingcall>
 
-    <!-- Patch Drush Phing task to [separate piping from output
-         capturing](http://drupal.org/node/1276396).
-         This is necessary to work with tests from Phing.-->
-    <phingcall target="apply-http-patch">
-      <property name="patch.url" value="http://drupal.org/files/issues/1276396-drush-task-pipe-return-property.patch"/>
-      <property name="patch.dir" value="${project.toolsdir}/phing-drush" />
-    </phingcall>
-
     <!-- Register as custom Phing task -->
     <taskdef name="drush" classname="DrushTask"
              classpath="${project.toolsdir}/phing-drush" />
