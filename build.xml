@@ -700,10 +700,15 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
             logoutput="true" />
     </target>
 
-  <!-- ### Run simpletests -->
+  <!-- ### Run simpletests
+
+Execution of this target can be skipped by setting the
+ `project.simpletest.skip` property from the command line or in other targets.
+-->
   <target name="simpletest"
           description="Run all unit tests"
-          depends="init, setup-phing-drush, site-install">
+          depends="init, setup-phing-drush, site-install"
+          unless="project.simpletest.skip">
     <!-- Enable simpletest module. If using Drupal 6 the module will be
          downloaded as well. -->
     <phingcall target="enable-module">
