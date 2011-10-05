@@ -347,7 +347,7 @@ complies with coding standards.</p>
            a working site so skip that.</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>      <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;drupal.make.skip&quot;</span> <span class="na">value=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+              <div class="highlight"><pre>      <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;project.make.skip&quot;</span> <span class="na">value=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
     <span class="nt">&lt;/phingcall&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
@@ -1314,11 +1314,15 @@ covers all of the
                 <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <h3>Run simpletests</h3>
+
+<p>Execution of this target can be skipped by setting the
+ <code>project.simpletest.skip</code> property from the command line or in other targets.</p>
             </td>
             <td class="code">
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;simpletest&quot;</span>
           <span class="na">description=</span><span class="s">&quot;Run all unit tests&quot;</span>
-          <span class="na">depends=</span><span class="s">&quot;init, setup-phing-drush, site-install&quot;</span><span class="nt">&gt;</span></pre></div>            </td>
+          <span class="na">depends=</span><span class="s">&quot;init, setup-phing-drush, site-install&quot;</span>
+          <span class="na">unless=</span><span class="s">&quot;project.simpletest.skip&quot;</span><span class="nt">&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-67">
             <td class="docs">
@@ -1377,7 +1381,7 @@ covers all of the
          prefixes.</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>    <span class="nt">&lt;loadfile</span> <span class="na">property=</span><span class="s">&quot;project.code.tests&quot;</span>
+              <div class="highlight"><pre>    <span class="nt">&lt;loadfile</span> <span class="na">property=</span><span class="s">&quot;project.simpletest.tests&quot;</span>
               <span class="na">file=</span><span class="s">&quot;${project.logdir}/tests.txt&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;filterchain&gt;</span>
         <span class="nt">&lt;linecontainsregexp&gt;</span>
@@ -1400,8 +1404,8 @@ Groupname 2             Groupname 2
 <p>into a list of comma separated unique group names <code>Groupname 1,Groupname 2</code>.</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre>    <span class="nt">&lt;php</span> <span class="na">expression=</span><span class="s">&quot;implode(&#39;,&#39;, array_unique(preg_split(&#39;/(\s{2,}|\r|\n)/&#39;, trim(&#39;${project.code.tests}&#39;, PREG_SPLIT_NO_EMPTY))))&quot;</span>
-         <span class="na">returnProperty=</span><span class="s">&quot;project.code.tests&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+              <div class="highlight"><pre>    <span class="nt">&lt;php</span> <span class="na">expression=</span><span class="s">&quot;implode(&#39;,&#39;, array_unique(preg_split(&#39;/(\s{2,}|\r|\n)/&#39;, trim(&#39;${project.simpletest.tests}&#39;, PREG_SPLIT_NO_EMPTY))))&quot;</span>
+         <span class="na">returnProperty=</span><span class="s">&quot;project.simpletest.tests&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-73">
             <td class="docs">
@@ -1413,7 +1417,7 @@ Groupname 2             Groupname 2
             </td>
             <td class="code">
               <div class="highlight"><pre>    <span class="nt">&lt;drush</span> <span class="na">command=</span><span class="s">&quot;test-run&quot;</span><span class="nt">&gt;</span>
-      <span class="nt">&lt;param&gt;</span>${project.code.tests}<span class="nt">&lt;/param&gt;</span>
+      <span class="nt">&lt;param&gt;</span>${project.simpletest.tests}<span class="nt">&lt;/param&gt;</span>
       <span class="nt">&lt;option</span> <span class="na">name=</span><span class="s">&quot;xml&quot;</span><span class="nt">&gt;</span>${project.testdir}<span class="nt">&lt;/option&gt;</span>
     <span class="nt">&lt;/drush&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
@@ -1717,7 +1721,8 @@ called from <code>init</code> target.</p>
 <p>Download and install the source code for the site using Drush Make.</p>
 
 <p>This target is only executed if the project uses make files as configured
-in the <code>build.properties</code> file. Execution can also be skipped by setting the drupal.make.skip property from the command line or in other targets.</p>
+in the <code>build.properties</code> file. Execution can also be skipped by setting the
+<code>project.make.skip</code> property from the command line or in other targets.</p>
 
 <p>This is part of the initialization of the build. This target should only be
 called from <code>init</code> target.</p>
@@ -1728,8 +1733,8 @@ called from <code>init</code> target.</p>
           <span class="na">if=</span><span class="s">&quot;drupal.make.file&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;if&gt;</span>
       <span class="nt">&lt;or&gt;</span>
-        <span class="nt">&lt;not&gt;&lt;isset</span> <span class="na">property=</span><span class="s">&quot;drupal.make.skip&quot;</span><span class="nt">/&gt;&lt;/not&gt;</span>
-        <span class="nt">&lt;not&gt;&lt;istrue</span> <span class="na">value=</span><span class="s">&quot;${drupal.make.skip}&quot;</span><span class="nt">/&gt;&lt;/not&gt;</span>
+        <span class="nt">&lt;not&gt;&lt;isset</span> <span class="na">property=</span><span class="s">&quot;project.make.skip&quot;</span><span class="nt">/&gt;&lt;/not&gt;</span>
+        <span class="nt">&lt;not&gt;&lt;istrue</span> <span class="na">value=</span><span class="s">&quot;${project.make.skip}&quot;</span><span class="nt">/&gt;&lt;/not&gt;</span>
       <span class="nt">&lt;/or&gt;</span>
       <span class="nt">&lt;then&gt;</span></pre></div>            </td>
           </tr>
@@ -2113,7 +2118,8 @@ called from <code>init</code> target.</p>
             </td>
             <td class="code">
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;site-install&quot;</span>
-          <span class="na">depends=</span><span class="s">&quot;init, setup-phing-drush&quot;</span><span class="nt">&gt;</span>
+          <span class="na">depends=</span><span class="s">&quot;init, setup-phing-drush&quot;</span>
+          <span class="na">unless=</span><span class="s">&quot;project.installed&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;drush</span> <span class="na">command=</span><span class="s">&quot;site-install&quot;</span> <span class="na">assume=</span><span class="s">&quot;yes&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;option</span> <span class="na">name=</span><span class="s">&quot;db-url&quot;</span><span class="nt">&gt;</span>${drupal.db.url}<span class="nt">&lt;/option&gt;</span>
       <span class="nt">&lt;param&gt;</span>${drupal.profile}<span class="nt">&lt;/param&gt;</span>
@@ -2132,13 +2138,23 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>    <span class="nt">&lt;chmod</span> <span class="na">file=</span><span class="s">&quot;${project.drupal.dir}/sites/default/&quot;</span>
            <span class="na">mode=</span><span class="s">&quot;0755&quot;</span> <span class="na">failonerror=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
     <span class="nt">&lt;chmod</span> <span class="na">file=</span><span class="s">&quot;${project.drupal.dir}/sites/default/default.settings.php&quot;</span>
-           <span class="na">mode=</span><span class="s">&quot;0755&quot;</span> <span class="na">failonerror=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
+           <span class="na">mode=</span><span class="s">&quot;0755&quot;</span> <span class="na">failonerror=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
                   <tr id="section-121">
             <td class="docs">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-121">&#182;</a>
+              </div>
+              <p>Set property to prevent target from being executed multiple times</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;project.installed&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-122">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <h3>Download and enable a project/module</h3>
             </td>
@@ -2146,10 +2162,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;enable-module&quot;</span>
           <span class="na">depends=</span><span class="s">&quot;setup-phing-drush&quot;</span><span class="nt">&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-122">
+                  <tr id="section-123">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-122">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p>If project is not set then we assume that the module name is also
          the project name.</p>
@@ -2162,10 +2178,10 @@ called from <code>init</code> target.</p>
       <span class="nt">&lt;/then&gt;</span>
     <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-123">
+                  <tr id="section-124">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>If the module is not already available then download it</p>
             </td>
@@ -2184,10 +2200,10 @@ called from <code>init</code> target.</p>
       <span class="nt">&lt;/then&gt;</span>
     <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-124">
+                  <tr id="section-125">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Enable the module</p>
             </td>
@@ -2197,20 +2213,20 @@ called from <code>init</code> target.</p>
     <span class="nt">&lt;/drush&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-125">
+                  <tr id="section-126">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-125">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <h3>Clone a git repository</h3>
             </td>
             <td class="code">
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;setup-git-repo&quot;</span><span class="nt">&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-126">
+                  <tr id="section-127">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-126">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p>Only clone if repository does not exist already</p>
             </td>
@@ -2220,10 +2236,10 @@ called from <code>init</code> target.</p>
       <span class="nt">&lt;then&gt;</span>
         <span class="nt">&lt;echo&gt;</span>Cloning ${repo.url} into ${repo.dir}<span class="nt">&lt;/echo&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-127">
+                  <tr id="section-128">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-127">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p>The <a href="http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask"><code>gitclone</code> task</a>
              does not seem to work. Use exec instead.</p>
@@ -2237,10 +2253,10 @@ called from <code>init</code> target.</p>
     <span class="nt">&lt;/if&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-128">
+                  <tr id="section-129">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-128">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <h3>Download and apply a patch</h3>
             </td>
@@ -2250,10 +2266,10 @@ called from <code>init</code> target.</p>
       <span class="nt">&lt;param&gt;</span>${patch.url}<span class="nt">&lt;/param&gt;</span>
     <span class="nt">&lt;/php&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-129">
+                  <tr id="section-130">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-129">&#182;</a>
+                <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
               <p>If patch has already been downloaded then we assume it has also been
          applied</p>
@@ -2270,10 +2286,10 @@ called from <code>init</code> target.</p>
     <span class="nt">&lt;/if&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-130">
+                  <tr id="section-131">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <h3>Setup Phing Drush integration</h3>
             </td>
@@ -2281,10 +2297,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;setup-phing-drush&quot;</span>
           <span class="na">depends=</span><span class="s">&quot;setup-dirs&quot;</span> <span class="nt">&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-131">
+                  <tr id="section-132">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>Clone the project from Drupal.org</p>
             </td>
@@ -2294,10 +2310,10 @@ called from <code>init</code> target.</p>
       <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;repo.url&quot;</span> <span class="na">value=</span><span class="s">&quot;${phing.drush.repository}&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;/phingcall&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-132">
+                  <tr id="section-133">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>Register as custom Phing task</p>
             </td>
@@ -2305,10 +2321,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>    <span class="nt">&lt;taskdef</span> <span class="na">name=</span><span class="s">&quot;drush&quot;</span> <span class="na">classname=</span><span class="s">&quot;DrushTask&quot;</span>
              <span class="na">classpath=</span><span class="s">&quot;${project.toolsdir}/phing-drush&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-133">
+                  <tr id="section-134">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p>Run drush from the project Drupal directory</p>
             </td>
@@ -2316,10 +2332,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;drush.root&quot;</span> <span class="na">value=</span><span class="s">&quot;${project.drupal.dir}&quot;</span><span class="nt">/&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-134">
+                  <tr id="section-135">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <h3>Setup Rhino</h3>
 
@@ -2334,10 +2350,10 @@ called from <code>init</code> target.</p>
      <span class="nt">&lt;php</span> <span class="na">function=</span><span class="s">&quot;basename&quot;</span> <span class="na">returnProperty=</span><span class="s">&quot;rhino.basename&quot;</span><span class="nt">&gt;</span>
        <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;${rhino.url}&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-135">
+                  <tr id="section-136">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>We assume that the version of Rhino used is a distribution
             where the filename ends in <code>.zip</code></p>
@@ -2346,10 +2362,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>       <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;.zip&quot;</span> <span class="nt">/&gt;</span>
      <span class="nt">&lt;/php&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-136">
+                  <tr id="section-137">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p>Other targets use this property to determine the location of the
           <code>js.jar</code> file</p>
@@ -2358,10 +2374,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;rhino.jar&quot;</span>
                <span class="na">value=</span><span class="s">&quot;${rhino.dir}/${rhino.basename}/js.jar&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-137">
+                  <tr id="section-138">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p>If the Rhino js.jar file is not available then download and
           unpack Rhino</p>
@@ -2381,10 +2397,10 @@ called from <code>init</code> target.</p>
        <span class="nt">&lt;/then&gt;</span>
      <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-138">
+                  <tr id="section-139">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
               <p>Set property to prevent unnecessary additional invocations of this
           target</p>
