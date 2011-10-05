@@ -394,7 +394,7 @@ stated as a part of the task.</p>
               <div class="highlight"><pre>  <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;lint-php&quot;</span>
           <span class="na">description=</span><span class="s">&quot;Check all PHP files for syntax errors using PHPLint&quot;</span>
           <span class="na">depends=</span><span class="s">&quot;init&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;phplint&gt;</span>
+    <span class="nt">&lt;phplint</span> <span class="na">haltonfailure=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;fileset</span> <span class="na">refid=</span><span class="s">&quot;src.php&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;/phplint&gt;</span>
   <span class="nt">&lt;/target&gt;</span>
@@ -402,7 +402,7 @@ stated as a part of the task.</p>
   <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;lint-php-custom&quot;</span>
           <span class="na">description=</span><span class="s">&quot;Check custom PHP files for syntax errors using PHPLint&quot;</span>
           <span class="na">depends=</span><span class="s">&quot;init&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;phplint&gt;</span>
+    <span class="nt">&lt;phplint</span> <span class="na">haltonfailure=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;fileset</span> <span class="na">refid=</span><span class="s">&quot;src.php.custom&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;/phplint&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
@@ -2299,31 +2299,16 @@ called from <code>init</code> target.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
-              <p>Patch Drush Phing task to <a href="http://drupal.org/node/1276396">separate piping from output
-         capturing</a>.
-         This is necessary to work with tests from Phing.</p>
-            </td>
-            <td class="code">
-              <div class="highlight"><pre>    <span class="nt">&lt;phingcall</span> <span class="na">target=</span><span class="s">&quot;apply-http-patch&quot;</span><span class="nt">&gt;</span>
-      <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;patch.url&quot;</span> <span class="na">value=</span><span class="s">&quot;http://drupal.org/files/issues/1276396-drush-task-pipe-return-property.patch&quot;</span><span class="nt">/&gt;</span>
-      <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;patch.dir&quot;</span> <span class="na">value=</span><span class="s">&quot;${project.toolsdir}/phing-drush&quot;</span> <span class="nt">/&gt;</span>
-    <span class="nt">&lt;/phingcall&gt;</span></pre></div>            </td>
-          </tr>
-                  <tr id="section-133">
-            <td class="docs">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-133">&#182;</a>
-              </div>
               <p>Register as custom Phing task</p>
             </td>
             <td class="code">
               <div class="highlight"><pre>    <span class="nt">&lt;taskdef</span> <span class="na">name=</span><span class="s">&quot;drush&quot;</span> <span class="na">classname=</span><span class="s">&quot;DrushTask&quot;</span>
              <span class="na">classpath=</span><span class="s">&quot;${project.toolsdir}/phing-drush&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-134">
+                  <tr id="section-133">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>Run drush from the project Drupal directory</p>
             </td>
@@ -2331,10 +2316,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;drush.root&quot;</span> <span class="na">value=</span><span class="s">&quot;${project.drupal.dir}&quot;</span><span class="nt">/&gt;</span>
   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-135">
+                  <tr id="section-134">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <h3>Setup Rhino</h3>
 
@@ -2349,10 +2334,10 @@ called from <code>init</code> target.</p>
      <span class="nt">&lt;php</span> <span class="na">function=</span><span class="s">&quot;basename&quot;</span> <span class="na">returnProperty=</span><span class="s">&quot;rhino.basename&quot;</span><span class="nt">&gt;</span>
        <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;${rhino.url}&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-136">
+                  <tr id="section-135">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p>We assume that the version of Rhino used is a distribution
             where the filename ends in <code>.zip</code></p>
@@ -2361,10 +2346,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>       <span class="nt">&lt;param</span> <span class="na">value=</span><span class="s">&quot;.zip&quot;</span> <span class="nt">/&gt;</span>
      <span class="nt">&lt;/php&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-137">
+                  <tr id="section-136">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>Other targets use this property to determine the location of the
           <code>js.jar</code> file</p>
@@ -2373,10 +2358,10 @@ called from <code>init</code> target.</p>
               <div class="highlight"><pre>     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;rhino.jar&quot;</span>
                <span class="na">value=</span><span class="s">&quot;${rhino.dir}/${rhino.basename}/js.jar&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-138">
+                  <tr id="section-137">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p>If the Rhino js.jar file is not available then download and
           unpack Rhino</p>
@@ -2396,10 +2381,10 @@ called from <code>init</code> target.</p>
        <span class="nt">&lt;/then&gt;</span>
      <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
           </tr>
-                  <tr id="section-139">
+                  <tr id="section-138">
             <td class="docs">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-139">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p>Set property to prevent unnecessary additional invocations of this
           target</p>
