@@ -72,7 +72,7 @@ Many of the same tools are used: [phploc](http://sebastianbergmann.github.com/ph
 A couple of additional external tools are downloaded and used during the
 build process:
 
-* [Phing Drush Task](http://git.drupal.org/sandbox/mongolito404/1157574.git):
+* [Phing Drush Task](http://drupal.org/project/phingdrushtask):
   A custom task for running drush from Phing
 * [Phing PHPLoc](https://github.com/raphaelstolt/phploc-phing): A custom task
   for running phploc from Phing
