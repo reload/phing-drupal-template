@@ -270,7 +270,7 @@ from parent `lint-js` targets. -->
           unless="project.jslint.setup">
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.toolsdir}/jslint"/>
-      <property name="repo.url" value="${jslint.repository}" />
+      <property name="repo.url" value="${jslint.repository.url}" />
     </phingcall>
 
     <!-- Other targets use this property to determine the location of the jslint
@@ -360,8 +360,12 @@ from parent `lint-css` targets. -->
            depends="init"
            unless="project.csslint.setup">
      <phingcall target="setup-git-repo">
-       <property name="repo.dir" value="${project.toolsdir}/csslint"/>
-       <property name="repo.url" value="${csslint.repository}" />
+       <property name="repo.dir"
+                 value="${project.toolsdir}/csslint"/>
+       <property name="repo.url"
+                 value="${csslint.repository.url}" />
+       <property name="repo.revision"
+                 value="${csslint.repository.revision}" />
      </phingcall>
 
      <!-- Other targets use this property to determine the location of the
@@ -525,7 +529,7 @@ statistics. -->
     <!-- Clone the project -->
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.toolsdir}/phing-phploc"/>
-      <property name="repo.url" value="${phing.phploc.repository}" />
+      <property name="repo.url" value="${phing.phploc.repository.url}" />
     </phingcall>
     <!-- Register the custom Phing task -->
     <taskdef name="phploc" classname="PHPLocTask"
@@ -687,7 +691,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
            PHP_CodeSniffer. -->
       <phingcall target="setup-git-repo">
         <property name="repo.dir" value="${project.toolsdir}/drupalcs"/>
-        <property name="repo.url" value="${phpcs.drupalcs.repository}" />
+        <property name="repo.url" value="${phpcs.drupalcs.repository.url}" />
       </phingcall>
       <!-- There is no Phing task for PHP Codesniffer in v2.4.6.
            It's coming for v2.5. Execute while we wait. -->
@@ -1169,12 +1173,18 @@ Configuration of which installation profile and database to use in done in
     <if>
       <not><available file="${repo.dir}" /></not>
       <then>
-        <echo>Cloning ${repo.url} into ${repo.dir}</echo>
-        <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
-             does not seem to work. Use exec instead.
+        <if>
+          <not><isset property="repo.revision"/></not>
+          <then>
+            <property name="repo.revision" value="HEAD" />
+          </then>
+        </if>
 
-             Do a [shallow copy](https://git.wiki.kernel.org/index.php/GitFaq#How_do_I_do_a_quick_clone_without_history_revisions.3F) to improve efficiency. -->
-        <exec command="git clone ${repo.url} ${repo.dir} --depth 1" />
+        <echo>Cloning ${repo.url} ${repo.revision} into ${repo.dir}</echo>
+        <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
+             does not seem to work. Use exec instead. -->
+        <exec command="git clone ${repo.url} ${repo.dir}" />
+        <exec command="git checkout ${repo.revision}" dir="${repo.dir}"/>
       </then>
     </if>
   </target>
@@ -1201,10 +1211,14 @@ Configuration of which installation profile and database to use in done in
   <!-- ### Setup Phing Drush integration -->
   <target name="setup-phing-drush"
           depends="setup-dirs" >
-    <!-- Clone the project from Drupal.org -->
+    <!-- Clone the project -->
     <phingcall target="setup-git-repo">
-      <property name="repo.dir" value="${project.toolsdir}/phing-drush"/>
-      <property name="repo.url" value="${phing.drush.repository}" />
+      <property name="repo.dir"
+                value="${project.toolsdir}/phing-drush"/>
+      <property name="repo.url"
+                value="${phing.drush.repository.url}" />
+      <property name="repo.revision"
+                value="${phing.drush.repository.revision}" />
     </phingcall>
 
     <!-- Register as custom Phing task -->
