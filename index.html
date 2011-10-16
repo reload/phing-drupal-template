@@ -2420,6 +2420,114 @@ called from <code>init</code> target.</p>
             </td>
             <td class="code">
               <div class="highlight"><pre>     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;project.rhino.setup&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+   <span class="nt">&lt;/target&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-140">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-140">&#182;</a>
+              </div>
+              <h3>Build documentation using Phrocco</h3>
+
+<p>Generate documentation for the build script using <a href="https://github.com/oneblackbear/phrocco">Phrocco</a> and prepare for pushing changes to <a href="http://pages.github.com/">GitHub pages</a>.</p>
+
+<p>To use this task you mush have a version of Phrocco with support for XML
+parsing installed. The task is primarily for template developers.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>   <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;phrocco&quot;</span>
+           <span class="na">depends=</span><span class="s">&quot;clean&quot;</span><span class="nt">&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-141">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-141">&#182;</a>
+              </div>
+              <p>Determine current branch</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git status --branch --short&quot;</span>
+           <span class="na">outputProperty=</span><span class="s">&quot;phrocco.code.status&quot;</span> <span class="nt">/&gt;</span>
+     <span class="nt">&lt;php</span> <span class="na">expression=</span><span class="s">&quot;array_shift(explode(&#39;...&#39;, trim(&#39;${phrocco.code.status}&#39;, &#39;# &#39;), 2))&quot;</span>
+          <span class="na">returnProperty=</span><span class="s">&quot;phrocco.code.branch&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-142">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-142">&#182;</a>
+              </div>
+              <p>Generate documentation in the root build directory</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;phrocco -i . -o . -l xml&quot;</span>
+           <span class="na">passthru=</span><span class="s">&quot;true&quot;</span> <span class="na">checkreturn=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-143">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-143">&#182;</a>
+              </div>
+              <p>Checkout the GitHub pages branch</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git checkout gh-pages&quot;</span>
+           <span class="na">passthru=</span><span class="s">&quot;true&quot;</span> <span class="na">checkreturn=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-144">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-144">&#182;</a>
+              </div>
+              <p>We use the documentation for build.xml and root file so rename
+          it to index.html</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;move</span> <span class="na">file=</span><span class="s">&quot;build.html&quot;</span> <span class="na">tofile=</span><span class="s">&quot;index.html&quot;</span> <span class="na">overwrite=</span><span class="s">&quot;true&quot;</span>
+           <span class="na">haltonerror=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+
+     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;phrocco.commit.mode&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-145">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-145">&#182;</a>
+              </div>
+              <p>If the local documentation branch is ahead then we have other
+          changes which have not been pushed yet. These have probably also
+          been generated by this script so amend these changes.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git status --branch --short&quot;</span>
+           <span class="na">outputProperty=</span><span class="s">&quot;phrocco.docs.status&quot;</span> <span class="nt">/&gt;</span>
+     <span class="nt">&lt;if&gt;</span>
+       <span class="nt">&lt;contains</span> <span class="na">string=</span><span class="s">&quot;${phrocco.docs.status}&quot;</span> <span class="na">substring=</span><span class="s">&quot;[ahead&quot;</span><span class="nt">/&gt;</span>
+       <span class="nt">&lt;then&gt;</span>
+         <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;phrocco.docs.commit&quot;</span> <span class="na">value=</span><span class="s">&quot;--amend&quot;</span>
+                   <span class="na">override=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+       <span class="nt">&lt;/then&gt;</span>
+     <span class="nt">&lt;/if&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-146">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-146">&#182;</a>
+              </div>
+              <p>Commit the changes</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git commit --all -m &#39;Documentation update&#39; ${phrocco.docs.commit}&quot;</span>
+           <span class="na">passthru=</span><span class="s">&quot;true&quot;</span> <span class="na">checkreturn=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span></pre></div>            </td>
+          </tr>
+                  <tr id="section-147">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-147">&#182;</a>
+              </div>
+              <p>Return to the main branch</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>     <span class="nt">&lt;exec</span> <span class="na">command=</span><span class="s">&quot;git checkout ${phrocco.code.branch}&quot;</span>
+           <span class="na">passthru=</span><span class="s">&quot;true&quot;</span> <span class="na">checkreturn=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
    <span class="nt">&lt;/target&gt;</span>
 
 <span class="nt">&lt;/project&gt;</span>
