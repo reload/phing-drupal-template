@@ -1313,13 +1313,13 @@ parsing installed. The task is primarily for template developers. -->
      <if>
        <contains string="${phrocco.docs.status}" substring="[ahead"/>
        <then>
-         <property name="phrocco.docs.commit" value="--amend"
+         <property name="phrocco.commit.mode" value="--amend"
                    override="true" />
        </then>
      </if>
 
      <!-- Commit the changes -->
-     <exec command="git commit --all -m 'Documentation update' ${phrocco.docs.commit}"
+     <exec command="git commit --all -m 'Documentation update' ${phrocco.commit.mode}"
            passthru="true" checkreturn="true"/>
 
      <!-- Return to the main branch -->
