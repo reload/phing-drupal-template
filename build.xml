@@ -26,7 +26,8 @@ project and place it in a subfolder or use it as a
 [git submodule](http://kernel.org/pub/software/scm/git/docs/git-submodule.html).
 Using the `build` subfolder from the root directory is recommended. Copy the
 `build.default.properties` file to the root directory, rename it
-`build.properties` and modify it according to your project.
+`build.properties` and modify it according to your project. Leave out
+properties where you want to use the default values.
 
 ### Requirements
 
@@ -820,9 +821,14 @@ database and the names of your custom modules.
 
 All available properties are described and set to a default value in
 [`build.default.properties`](https://raw.github.com/reload/phing-drupal-template/master/build.default.properties).
-You can create your own properties file by copying the
+You should create your own properties file by copying the
 `build.default.properties` file to the root directory, rename it
-`build.properties` and modify it according to your project. -->
+`build.properties` and modify it according to your project.
+
+Both property files are loaded so your custom `build.properties` file should
+only contain properties where you want to override the default value e.g. set
+your custom module code prefix or use a special version of one of the build
+tools. -->
   <target name="load-properties">
     <php function="dirname" returnProperty="phing.dir">
       <param value="${phing.file}"/>
@@ -858,6 +864,10 @@ root directory. -->
              `build.default.properties` -->
         <property name="project.properties.file"
                   value="${phing.dir}/build.default.properties" />
+        <!-- Load the default properties.
+             Override in case `load-properties` are called multiple times. -->
+        <property file="${project.properties.file}" override="true" />
+
         <!-- Allow override using `build.properties` in build file
              directory -->
         <available file="${phing.dir}/build.properties"
@@ -869,8 +879,7 @@ root directory. -->
                    property="project.properties.file"
                    value="${project.basedir}/build.properties" />
 
-        <!-- Load the properties.
-             Override in case `load-properties` are called multiple times. -->
+        <!-- Load the overriding properties. -->
         <property file="${project.properties.file}" override="true" />
 
         <!-- Set property to prevent unnecessary additional invocations of this target -->
