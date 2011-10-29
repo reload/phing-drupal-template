@@ -288,22 +288,21 @@ from parent `lint-js` targets. -->
 <!-- ### CSS linting
 
 Checks code against [CSS Lint](http://www.csslint.net/) to help point out problems with CSS code. It does basic syntax checking as well as applying a set of rules to the code that look for problematic patterns or signs of inefficiency. -->
-<target name="lint-css"
-        description="Check all CSS files using CSS Lint"
-        depends="init, setup-rhino, setup-csslint">
-  <foreach target="csslint-file" param="filename" absparam="absfilename">
-    <fileset refid="src.css"/>
-  </foreach>
-</target>
+  <target name="lint-css"
+          description="Check all CSS files using CSS Lint"
+          depends="init, setup-rhino, setup-csslint">
+    <foreach target="csslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.css"/>
+    </foreach>
+  </target>
 
-<target name="lint-css-custom"
-        description="Check custom CSS files using CSS Lint"
-        depends="init, setup-rhino, setup-csslint">
-  <foreach target="csslint-file" param="filename" absparam="absfilename">
-    <fileset refid="src.css.custom"/>
-  </foreach>
-</target>
-
+  <target name="lint-css-custom"
+          description="Check custom CSS files using CSS Lint"
+          depends="init, setup-rhino, setup-csslint">
+    <foreach target="csslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.css.custom"/>
+    </foreach>
+  </target>
 
 <!-- #### csslint a file
 
