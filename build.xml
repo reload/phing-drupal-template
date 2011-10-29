@@ -381,49 +381,31 @@ from parent `lint-css` targets. -->
 <!-- ### Debug code detection
 
 Code should not call functions which are usually used for debugging.
-This belongs on developer environments - not VCS. -->
+This belongs on developer environments - not VCS. This goes for mentioning
+them in comments as well. -->
   <target name="check-php-debug"
           description="Check custom PHP code for debug statements"
           depends="init">
-    <property name="debug.language" value="PHP" override="true" />
-    <property name="debug.pattern" value="(var_dump\(|dsm\(|dpm\()"
-              override="true" />
-    <fileset id="debug.fileset" refid="src.php.custom"/>
-
-    <php function="strtolower" returnProperty="debug.language.lower">
-      <param value="${debug.language}" />
-    </php>
-    <property name="debug.output"
-              value="${project.logdir}/debug_${debug.language.lower}.txt"
-              override="true" />
-    <delete file="${debug.output}"/>
-    <append text="" destFile="${debug.output}" />
-
-    <foreach target="check-debug-file" param="filename"
-             absparam="absfilename">
-      <fileset refid="debug.fileset"/>
-    </foreach>
-
-    <loadfile property="debug.lines" file="${debug.output}" />
-    <!-- Break if debug code is detected! -->
-    <if>
-      <not>
-        <equals arg1="${debug.lines}" arg2="" />
-      </not>
-      <then>
-        <fail message="${debug.language} debug code detected:${line.separator}
-                       ${debug.lines}" />
-      </then>
-    </if>
+    <phingcall target="check-debug">
+      <property name="debug.language" value="PHP" override="true" />
+      <property name="debug.pattern" value="(var_dump\(|dsm\(|dpm\()"
+                override="true" />
+      <property name="debug.fileset" value="src.php.custom"/>
+    </phingcall>
   </target>
 
   <target name="check-js-debug"
-          description="Check custom Javascript code for debug statements"
-          depends="init">
-    <property name="debug.language" value="Javascript" override="true" />
-    <property name="debug.pattern" value="(console\.log\()" override="true" />
-    <fileset id="debug.fileset" refid="src.js.custom"/>
+          description="Check custom Javascript code for debug statements">
+    <phingcall target="check-debug">
+      <property name="debug.language" value="Javascript" override="true" />
+      <property name="debug.pattern" value="(console\.log\()" override="true" />
+      <property name="debug.fileset" value="src.js.custom"/>
+    </phingcall>
+  </target>
 
+  <!-- #### Check a fileset for debug code -->
+  <target name="check-debug"
+          depends="init">
     <php function="strtolower" returnProperty="debug.language.lower">
       <param value="${debug.language}" />
     </php>
@@ -435,7 +417,7 @@ This belongs on developer environments - not VCS. -->
 
     <foreach target="check-debug-file" param="filename"
              absparam="absfilename">
-      <fileset refid="debug.fileset"/>
+      <fileset refid="${debug.fileset}"/>
     </foreach>
 
     <loadfile property="debug.lines" file="${debug.output}" />
@@ -454,7 +436,7 @@ This belongs on developer environments - not VCS. -->
 <!-- #### Check an individual file for debug code
 
 No need to run `init` here. This target should only be called through parent
-`check-debug-*` targets. -->
+`check-debug` target. -->
   <target name="check-debug-file">
     <echo>Checking file for debug statements: ${absfilename}</echo>
     <loadfile property="debug.lines" file="${absfilename}">
