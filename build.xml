@@ -537,13 +537,17 @@ specific prefix. -->
   <target name="coder-review-d7"
           description="Review code using Drupal 7 Coder module"
           depends="init, clean, site-install">
-    <!-- Setup properties for installing and running Coder Review.
+    <!-- Setup properties for running Coder Review.
          For some reason these properties are not passed correctly through to
          subtargets when defining them within the phingcall. -->
-    <property name="coder.version" value="7.x-1.0"/>
-    <property name="coder.review.module" value="coder_review"/>
     <property name="coder.review.command" value="coder-review"/>
-    <phingcall target="setup-coder-review"/>
+
+    <!-- Download and enable the Coder Review module -->
+    <phingcall target="enable-module">
+      <property name="project" value="coder"/>
+      <property name="project.version" value="7.x-1.0"/>
+      <property name="module" value="coder_review"/>
+    </phingcall>
 
     <!-- Perform actual coder review for each style -->
     <foreach target="coder-review" param="coder.review.type"
@@ -623,20 +627,6 @@ No need to run `init` here. This target should only be called from parent
         </replaceregexp>
       </filterchain>
     </reflexive>
-  </target>
-
-  <!-- #### Setup Coder module for performing code reviews -->
-  <target name="setup-coder-review">
-    <!-- Download Coder module -->
-    <drush command="pm-download" assume="yes">
-      <param>coder-${coder.version}</param>
-    </drush>
-
-    <!-- Enable module facilitating Coder reviews. This varies between
-         Drupal 6 and 7 versions. -->
-    <drush command="pm-enable" assume="yes">
-      <param>${coder.review.module}</param>
-    </drush>
   </target>
 
 <!-- ### Review code using PHP_CodeSniffer
@@ -1112,12 +1102,7 @@ Configuration of which installation profile and database to use in done in
           depends="setup-phing-drush">
     <!-- If project is not set then we assume that the module name is also
          the project name. -->
-    <if>
-      <not><isset property="project"/></not>
-      <then>
-        <property name="project" value="${module}"/>
-      </then>
-    </if>
+    <property name="project" value="${module}" override="no"/>
 
     <!-- If the module is not already available then download it -->
     <drush command="pm-list" returnProperty="modules.available"/>
@@ -1128,8 +1113,14 @@ Configuration of which installation profile and database to use in done in
     <if>
       <not><istrue value="${module.available}"/></not>
       <then>
+        <!-- Download specific version if specified -->
+        <condition property="download" value="${project}-${project.version}">
+          <isset property="project.version"/>
+        </condition>
+        <property name="download" value="${project}" override="false"/>
+
         <drush command="pm-download" assume="yes">
-          <param>${project}</param>
+          <param>${download}</param>
         </drush>
       </then>
     </if>
