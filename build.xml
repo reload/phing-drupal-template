@@ -596,7 +596,7 @@ No need to run `init` here. This target should only be called from parent
     <drush command="${coder.review.command}" assume="yes"
            pipe="yes" returnProperty="xml">
       <param>no-empty</param>
-      <param>xml</param>
+      <param>checkstyle</param>
       <param>minor</param>
       <param>${coder.review.type}</param>
       <!-- Review all the modules and themes matching the project prefix -->
@@ -611,30 +611,13 @@ No need to run `init` here. This target should only be called from parent
     <delete file="${coderreview.checkstyle.file}" />
     <append destFile="${coderreview.checkstyle.file}" text="${xml}" />
 
-<!-- Modify Coder Review XML output to match CheckStyle XML report format
-
-* Convert root element from coderreview to checkstyle
-* Convert severities from Drupal minor/normal/critical to CheckStyle
-  info/warning/error
-* Convert source from source extract to Category.Type format
-
-This could probably be handled better using an XSLT. Use string replacement for now.
-
-Filter chains does not seem to work in append so we load the file again. -->
+    <!-- Convert source from source extract to Category.Type format -->
     <php function="ucwords" returnProperty="type">
       <param value="${coder.review.type}"/>
     </php>
     <reflexive file="${coderreview.checkstyle.file}">
       <filterchain>
         <replaceregexp>
-          <regexp pattern="coderreview"
-                  replace="checkstyle" />
-          <regexp pattern='severity="minor"'
-                  replace='severity="info"' />
-          <regexp pattern='severity="normal"'
-                  replace='severity="warning"' />
-          <regexp pattern='severity="critical"'
-                  replace='severity="error"' />
           <regexp pattern='source=".*"'
                   replace='source="Drupal.CoderReview.${type}"' />
         </replaceregexp>
