@@ -1137,12 +1137,8 @@ Configuration of which installation profile and database to use in done in
     <if>
       <not><available file="${repo.dir}" /></not>
       <then>
-        <if>
-          <not><isset property="repo.revision"/></not>
-          <then>
-            <property name="repo.revision" value="HEAD" />
-          </then>
-        </if>
+        <!-- Set revision to HEAD if not already defined -->
+        <property name="repo.revision" value="HEAD" override="false"/>
 
         <echo>Cloning ${repo.url} ${repo.revision} into ${repo.dir}</echo>
         <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
