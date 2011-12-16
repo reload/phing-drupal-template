@@ -937,11 +937,14 @@ called from `init` target. -->
             </drush>
           </else>
         </if>
+
+        <!-- Set property to prevent target from being executed multiple times -->
+        <property name="project.make.skip" value="true"/>
       </then>
       <else>
         <echo>
           Skipping drush make.${line.separator}
-          drupal.make.skip has been set to ${drupal.make.skip}.
+          drupal.make.skip has been set to ${project.make.skip}.
         </echo>
       </else>
     </if>
