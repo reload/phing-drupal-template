@@ -933,7 +933,7 @@ called from `init` target. -->
           <else>
             <drush command="make" assume="yes">
               <param>${drupal.make.file}</param>
-              <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
+              <param>${drupal.make.dir}</param>
             </drush>
           </else>
         </if>
