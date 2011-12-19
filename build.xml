@@ -330,26 +330,46 @@ from parent `lint-css` targets. -->
     <delete file="${csslint.report.file}" />
     <append text="${report}"  destFile="${csslint.report.file}" />
 
-    <!-- CSS Lint reports parsing errors in CSS files using the Parsing
-         Errors rule. Consequently if the checkstyle file contains errors
-         with the net.csslint.ParsingErrors source a parsing error has been
-         detected. -->
-    <loadfile property="csslint.parseerrors"
-      file="${csslint.report.file}">
-      <filterchain>
-        <linecontainsregexp>
-            <regexp pattern="(net\.csslint\.ParsingErrors)" />
-          </linecontainsregexp>
-      </filterchain>
-    </loadfile>
 
-    <!-- Break if any parsing errors are detected! -->
+    <!-- Cleanup the break rules property.
+         Hyphens are removed to support both input and output rule format.
+         csslint-rule becomes CsslintRule.
+         Seperators (Commas and multiple whitespace characters) are reduced
+         to a pipe to be used in a regular expression. -->
+         <php expression="str_replace('-', '', '${csslint.rules.break}')"
+              returnProperty="csslint.rules.break"/>
+         <php expression="preg_replace('/(\s+|\s*,\s*)/', '|', '${csslint.rules.break}')"
+              returnProperty="csslint.rules.break"/>
+
+    <!-- If any rules which require the build to break are defined then
+         look for them. -->
     <if>
       <not>
-        <equals arg1="${csslint.parseerrors}" arg2="" />
+        <equals arg1="${csslint.rules.break}" arg2="" />
       </not>
       <then>
-        <fail message="CSS parsing error detected in file ${absfilename}" />
+        <!-- CSS Lint reports checkstyle errors using the format
+             net.csslint.RuleName. Load all checkstyle reports and look for
+             errors with such a source from the provided rules. -->
+        <loadfile property="csslint.break.errors"
+                  file="${csslint.report.file}">
+          <filterchain>
+            <linecontainsregexp>
+                <regexp pattern="(net\.csslint\.(${csslint.rules.break}))"
+                        ignoreCase="true" />
+              </linecontainsregexp>
+          </filterchain>
+        </loadfile>
+
+        <!-- Break if any errors from the provided rules are detected! -->
+        <if>
+          <not>
+            <equals arg1="${csslint.break.errors}" arg2="" />
+          </not>
+          <then>
+            <fail message="CSS error detected in file ${absfilename}" />
+          </then>
+        </if>
       </then>
     </if>
   </target>
