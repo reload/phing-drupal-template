@@ -42,6 +42,7 @@ installed as follows:
     pear channel-discover pear.phpunit.de
     pear channel-discover components.ez.no
     pear channel-discover pear.symfony-project.com
+    pear channel-discover saucelabs.github.com/pear
 
     pear install phing/phing
     pear install  -a phpmd/PHP_PMD
@@ -51,6 +52,9 @@ installed as follows:
     pear install PHP_CodeSniffer
     pear install HTTP_Request2
     pear install -a phpunit/PHP_CodeBrowser
+    pear install saucelabs/PHPUnit
+    pear install saucelabs/PHPUnit_Selenium
+    pear install saucelabs/PHPUnit_Selenium_SauceOnDemand
 
 The following must be available from the command line:
 
@@ -535,6 +539,90 @@ statistics. -->
     <!-- Register the custom Phing task -->
     <taskdef name="phploc" classname="PHPLocTask"
              classpath="${project.toolsdir}/phing-phploc" />
+  </target>
+
+<!-- ### Run Selenium test cases at Saucelabs.com using phpunit
+
+See [Saucelabs](http://saucelabs.com). -->
+  <target name="saucelabs"
+	  depends="init, clean, setup-saucelabs"
+	  if="saucelabs.run"
+          description="Run Selenium test cases at SaucelabsOnDemand">
+
+    <!-- Prepare test classes for each browser -->
+    <foreach list="${saucelabs.browsers}" param="saucelabs.run.browser" target="saucelabs-prepare-classes"/>
+
+    <property name="saucelabs.run.folder" value="${project.toolsdir}/saucelabs"/>
+
+    <!-- Run phpunit on prepared test classes -->
+    <phpunit>
+      <formatter todir="${project.testdir}" type="xml" outfile="saucelabs.xml"/>
+      <batchtest>
+	<fileset dir="${saucelabs.run.folder}">
+	  <include name="SeleneseTestSauceOnDemand-*.php"/>
+	</fileset>
+      </batchtest>
+    </phpunit>
+
+  </target>
+
+  <!-- ### Prepare SaucelabsOnDemand test classes for desired browsers -->
+  <target name="saucelabs-prepare-classes"
+	  depends="init, setup-saucelabs"
+	  if="saucelabs.run"
+          description="Check all PHP files for syntax errors using PHPLint">
+
+    <!-- set properties - shorthands for further work -->
+    <property name="saucelabs.run.folder" value="${project.toolsdir}/saucelabs"/>
+    <property name="saucelabs.run.testfile" value="SeleneseTestSauceOnDemand-${saucelabs.run.browser}.php"/>
+    <property name="saucelabs.run.abstestfile" value="${saucelabs.run.folder}/${saucelabs.run.testfile}"/>
+
+    <!-- Copy test class template so it can be preprocessed -->
+    <copy file="${saucelabs.run.folder}/SeleneseTestSauceOnDemand.php" tofile="${saucelabs.run.abstestfile}" overwrite="true"/>
+
+    <!-- Preproccess test class template with configuration -->
+    <reflexive>
+      <fileset dir="${saucelabs.run.folder}">
+    	<filename name="${saucelabs.run.testfile}"/>
+      </fileset>
+      <filterchain>
+    	<replacetokens begintoken="___" endtoken="___">
+    	  <token key="SeleneseTestSauceOnDemand" value="SeleneseTestSauceOnDemand${saucelabs.run.browser}"/>
+
+    	  <token key="STSOD_SELENESE_DIRECTORY" value="'${project.toolsdir}/tests/${saucelabs.tests.subfolder}'"/>
+    	  <token key="STSOD_PROJECT_NAME" value="'${saucelabs.project}'"/>
+    	  <token key="STSOD_USERNAME" value="'${saucelabs.username}'"/>
+    	  <token key="STSOD_ACCESSKEY" value="'${saucelabs.access-key}'"/>
+    	  <token key="STSOD_SITE_URL" value="'${saucelabs.site-url}'"/>
+    	  <token key="STSOD_BROWSER" value="${saucelabs.browser.${saucelabs.run.browser}}"/>
+
+    	  <token key="STSOD_RECORD_VIDEO" value="${saucelabs.record-video}"/>
+    	  <token key="STSOD_RECORD_SCREENSHOTS" value="${saucelabs.record-screenshots}"/>
+    	  <token key="STSOD_SAUCE_ADVISOR" value="${saucelabs.sauce-advisor}"/>
+    	  <token key="STSOD_MAX_DURATION" value="${saucelabs.max-duration}"/>
+    	  <token key="STSOD_IDLE_TIMEOUT" value="${saucelabs.idle-timeout}"/>
+
+    	</replacetokens>
+      </filterchain>
+    </reflexive>
+  </target>
+
+  <!-- #### Setup Saucelabs.com integration -->
+  <target name="setup-saucelabs"
+	  depends="init"
+	  if="saucelabs.run">
+
+    <!-- Clone the test cases -->
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.toolsdir}/tests"/>
+      <property name="repo.url" value="${saucelabs.tests.repository.url}" />
+    </phingcall>
+
+    <!-- Clone SeleneseTestSauceOnDemand -->
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.toolsdir}/saucelabs"/>
+      <property name="repo.url" value="${saucelabs.testclass-template.repository.url}" />
+    </phingcall>
   </target>
 
 <!-- ### Drupal Coder review
