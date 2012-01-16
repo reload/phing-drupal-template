@@ -127,6 +127,7 @@ time and is largely obsolete when using GitHub. -->
 Make sure that our code is clean and functional. -->
   <target name="verify" depends="init,
                                  clean,
+                                 saucelabs,
                                  lint-php-custom,
                                  lint-js-custom,
                                  lint-css-custom,
@@ -545,7 +546,7 @@ statistics. -->
 
 See [Saucelabs](http://saucelabs.com). -->
   <target name="saucelabs"
-	  depends="init, clean, setup-saucelabs"
+	  depends="init, clean, setup-saucelabs, deploy"
 	  if="saucelabs.run"
           description="Run Selenium test cases at SaucelabsOnDemand">
 
@@ -1205,6 +1206,61 @@ Configuration of which installation profile and database to use in done in
 
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.installed" value="true"/>
+  </target>
+
+<!-- ### Deploy a Drupal site
+
+This deploys a Drupal site using drush rsync.
+
+Configuration done in `build.properties`. -->
+  <target name="deploy"
+          depends="init, setup-phing-drush, site-install"
+          unless="project.deployed">
+    <!-- fix file permissions before rsync -->
+    <chmod file="${project.drupal.dir}" mode="777"/>
+    <chmod file="${project.drupal.dir}/database.sqlite" mode="666"/>
+    <chmod mode="777">
+      <fileset dir="${project.drupal.dir}/sites/default/files">
+	<include name="**"/>
+      </fileset>
+    </chmod>
+    <chmod file="${project.drupal.dir}/sites/default/settings.php" mode="666"/>
+
+    <!-- fix db path in settings.php -->
+    <reflexive>
+      <fileset dir="${project.drupal.dir}/sites/default">
+    	<filename name="settings.php"/>
+      </fileset>
+      <filterchain>
+        <replaceregexp>
+          <regexp pattern="${project.drupal.dir}"
+                  replace="${project.deploy.destination.path}/${phing.project.name}"/>
+        </replaceregexp>
+      </filterchain>
+    </reflexive>
+
+    <!-- rsync site to remote destination -->
+    <drush command="rsync" assume="yes">
+      <option name="exclude-paths">${project.builddir}</option>
+      <param>${project.drupal.dir}</param>
+      <param>${project.deploy.destination.host}:${project.deploy.destination.path}</param>
+    </drush>
+
+    <!-- revert fix db path in settings.php -->
+    <reflexive>
+      <fileset dir="${project.drupal.dir}/sites/default">
+    	<filename name="settings.php"/>
+      </fileset>
+      <filterchain>
+        <replaceregexp>
+          <regexp pattern="${project.deploy.destination.path}/${phing.project.name}"
+                  replace="${project.drupal.dir}"/>
+        </replaceregexp>
+      </filterchain>
+    </reflexive>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.deployed" value="true"/>
   </target>
 
   <!-- ### Download and enable a project/module -->
