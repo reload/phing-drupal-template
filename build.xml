@@ -226,7 +226,8 @@ parent `lint-js` tasks. -->
       <param value="${jslint4java.url}" />
     </php>
     <httpget url="${jslint4java.url}"
-             dir="${jslint4java.dir}"/>
+             dir="${jslint4java.dir}"
+             proxy="${httpget.proxy}"/>
     <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
            todir="${jslint4java.dir}" />
 
@@ -978,8 +979,9 @@ Configuration of which installation profile and database to use in done in
      <php function="basename" returnProperty="rhino.zipfile">
        <param value="${rhino.url}" />
      </php>
-     <httpget url="${rhino.url}"
-              dir="${rhino.dir}"/>
+    <httpget url="${jslint4java.url}"
+             dir="${jslint4java.dir}"
+             proxy="${httpget.proxy}"/>
      <unzip file="${rhino.dir}/${rhino.zipfile}"
             todir="${rhino.dir}" />
 
