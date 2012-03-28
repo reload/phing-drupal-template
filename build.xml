@@ -693,46 +693,56 @@ Execution of this target can be skipped by setting the
       <property name="module" value="simpletest"/>
     </phingcall>
 
-    <!-- Get a list of all available test cases -->
-    <drush command="test-run" returnProperty="tests" returnGlue="${line.separator}"/>
+    <if>
+      <isset property="drupal.uri">
+      <then>
 
-    <!-- The project list is piped through a file as this seems to be
-         the only way to handle filtering of values in Phing. -->
-    <delete file="${project.logdir}/tests.txt" />
-    <append text="${tests}" destFile="${project.logdir}/tests.txt" />
+        <!-- Get a list of all available test cases -->
+        <drush command="test-run" uri="${drupal.uri}" root="${project.drupal.dir}" returnProperty="tests" returnGlue="${line.separator}"/>
 
-    <!-- Build a regular expression to match test groups based on the
-         set properties. The expression should be in the format
-         `^\s?(prefix1|prefix2|prefix3)_`. -->
-    <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
-         returnProperty="project.code.prefix.regex"/>
+        <!-- The project list is piped through a file as this seems to be
+             the only way to handle filtering of values in Phing. -->
+        <delete file="${project.logdir}/tests.txt" />
+        <append text="${tests}" destFile="${project.logdir}/tests.txt" />
 
-    <!-- Load the list of tests but keep only the test groups matching our
-         prefixes. -->
-    <loadfile property="project.simpletest.tests"
-              file="${project.logdir}/tests.txt">
-      <filterchain>
-        <linecontainsregexp>
-          <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
-        </linecontainsregexp>
-      </filterchain>
-    </loadfile>
+        <!-- Build a regular expression to match test groups based on the
+             set properties. The expression should be in the format
+             `^\s?(prefix1|prefix2|prefix3)_`. -->
+        <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
+             returnProperty="project.code.prefix.regex"/>
 
-<!-- Transform the list of filtered test groups in the form
+        <!-- Load the list of tests but keep only the test groups matching our
+             prefixes. -->
+        <loadfile property="project.simpletest.tests"
+                  file="${project.logdir}/tests.txt">
+          <filterchain>
+            <linecontainsregexp>
+              <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
+            </linecontainsregexp>
+          </filterchain>
+        </loadfile>
 
-    Groupname 1             Groupname 1
-    Groupname 2             Groupname 2
+        <!-- Transform the list of filtered test groups in the form
 
-into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
-    <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
-         returnProperty="project.simpletest.tests"/>
+        Groupname 1             Groupname 1
+        Groupname 2             Groupname 2
 
-    <!-- Run the tests and generate JUnit XML reports. This requires
-         Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
-    <drush command="test-run" haltonerror="false">
-      <param>${project.simpletest.tests}</param>
-      <option name="xml">${project.testdir}</option>
-    </drush>
+        into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
+        <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
+             returnProperty="project.simpletest.tests"/>
+
+        <!-- Run the tests and generate JUnit XML reports. This requires
+             Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
+        <drush command="test-run" uri="${drupal.uri}" root="${project.drupal.dir}" haltonerror="false">
+          <param>${project.simpletest.tests}</param>
+          <option name="xml">${project.testdir}</option>
+          </drush>
+      </then>
+      <else>
+        <echo msg="You must set the drupal.uri property to get simpletests working.">
+      </else>
+    </if>
+    
   </target>
 
 <!-- ### Generate documentation -->
@@ -956,6 +966,19 @@ called from `init` target. -->
               <param>${drupal.make.dir}</param>
             </drush>
           </else>
+        </if>
+
+        <if>
+          <isset property="drupal.RewriteBase">
+          <then>
+            <reflexive file="${project.drupal.dir}/.htaccess">
+              <filterchain>
+                <replaceregexp>
+                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.RewriteBase}"/>
+                </replaceregexp>
+              </filterchain>
+            </reflexive>
+          </then>
         </if>
 
         <!-- Set property to prevent target from being executed multiple times -->
