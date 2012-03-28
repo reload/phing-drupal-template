@@ -959,7 +959,7 @@ called from `init` target. -->
         </if>
 
         <if>
-          <isset >
+          <isset property="drupal.RewriteBase">
           <then>
             <reflexive file="${project.drupal.dir}/.htaccess">
               <filterchain>
