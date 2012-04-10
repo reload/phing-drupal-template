@@ -250,7 +250,8 @@ from parent `lint-js` targets. -->
       <param value="${jslint4java.url}" />
     </php>
     <httpget url="${jslint4java.url}"
-             dir="${jslint4java.dir}"/>
+             dir="${jslint4java.dir}"
+             proxy="${phing.httpget.proxy}"/>
     <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
            todir="${jslint4java.dir}" />
 
@@ -968,6 +969,19 @@ called from `init` target. -->
           </else>
         </if>
 
+        <if>
+          <isset property="drupal.make.rewritebase">
+          <then>
+            <reflexive file="${project.drupal.dir}/.htaccess">
+              <filterchain>
+                <replaceregexp>
+                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.make.rewritebase}"/>
+                </replaceregexp>
+              </filterchain>
+            </reflexive>
+          </then>
+        </if>
+
         <!-- Set property to prevent target from being executed multiple times -->
         <property name="project.make.skip" value="true"/>
       </then>
@@ -1193,7 +1207,8 @@ Configuration of which installation profile and database to use in done in
       <not><available file="${project.toolsdir}/${patch.file}"/></not>
       <then>
         <httpget url="${patch.url}"
-                 dir="${project.toolsdir}"/>
+                 dir="${project.toolsdir}"
+                 proxy="${phing.httpget.proxy}/>
         <patch patchfile="${project.toolsdir}/${patch.file}"
                dir="${patch.dir}" haltonfailure="true"/>
       </then>
@@ -1251,7 +1266,8 @@ Configuration of which installation profile and database to use in done in
            <param value="${rhino.url}" />
          </php>
          <httpget url="${rhino.url}"
-                  dir="${rhino.dir}"/>
+                  dir="${rhino.dir}"
+                  proxy="${phing.httpget.proxy}/>
          <unzip file="${rhino.dir}/${rhino.zipfile}"
                 todir="${rhino.dir}" />
        </then>
