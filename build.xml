@@ -250,7 +250,8 @@ from parent `lint-js` targets. -->
       <param value="${jslint4java.url}" />
     </php>
     <httpget url="${jslint4java.url}"
-             dir="${jslint4java.dir}"/>
+             dir="${jslint4java.dir}"
+             proxy="${phing.httpget.proxy}"/>
     <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
            todir="${jslint4java.dir}" />
 
@@ -693,56 +694,46 @@ Execution of this target can be skipped by setting the
       <property name="module" value="simpletest"/>
     </phingcall>
 
-    <if>
-      <isset property="drupal.uri">
-      <then>
+    <!-- Get a list of all available test cases -->
+    <drush command="test-run" returnProperty="tests" returnGlue="${line.separator}"/>
 
-        <!-- Get a list of all available test cases -->
-        <drush command="test-run" uri="${drupal.uri}" root="${project.drupal.dir}" returnProperty="tests" returnGlue="${line.separator}"/>
+    <!-- The project list is piped through a file as this seems to be
+         the only way to handle filtering of values in Phing. -->
+    <delete file="${project.logdir}/tests.txt" />
+    <append text="${tests}" destFile="${project.logdir}/tests.txt" />
 
-        <!-- The project list is piped through a file as this seems to be
-             the only way to handle filtering of values in Phing. -->
-        <delete file="${project.logdir}/tests.txt" />
-        <append text="${tests}" destFile="${project.logdir}/tests.txt" />
+    <!-- Build a regular expression to match test groups based on the
+         set properties. The expression should be in the format
+         `^\s?(prefix1|prefix2|prefix3)_`. -->
+    <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
+         returnProperty="project.code.prefix.regex"/>
 
-        <!-- Build a regular expression to match test groups based on the
-             set properties. The expression should be in the format
-             `^\s?(prefix1|prefix2|prefix3)_`. -->
-        <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
-             returnProperty="project.code.prefix.regex"/>
+    <!-- Load the list of tests but keep only the test groups matching our
+         prefixes. -->
+    <loadfile property="project.simpletest.tests"
+              file="${project.logdir}/tests.txt">
+      <filterchain>
+        <linecontainsregexp>
+          <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
+        </linecontainsregexp>
+      </filterchain>
+    </loadfile>
 
-        <!-- Load the list of tests but keep only the test groups matching our
-             prefixes. -->
-        <loadfile property="project.simpletest.tests"
-                  file="${project.logdir}/tests.txt">
-          <filterchain>
-            <linecontainsregexp>
-              <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
-            </linecontainsregexp>
-          </filterchain>
-        </loadfile>
+<!-- Transform the list of filtered test groups in the form
 
-        <!-- Transform the list of filtered test groups in the form
+    Groupname 1             Groupname 1
+    Groupname 2             Groupname 2
 
-        Groupname 1             Groupname 1
-        Groupname 2             Groupname 2
+into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
+    <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
+         returnProperty="project.simpletest.tests"/>
 
-        into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
-        <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
-             returnProperty="project.simpletest.tests"/>
-
-        <!-- Run the tests and generate JUnit XML reports. This requires
-             Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
-        <drush command="test-run" uri="${drupal.uri}" root="${project.drupal.dir}" haltonerror="false">
-          <param>${project.simpletest.tests}</param>
-          <option name="xml">${project.testdir}</option>
-          </drush>
-      </then>
-      <else>
-        <echo msg="You must set the drupal.uri property to get simpletests working.">
-      </else>
-    </if>
-    
+    <!-- Run the tests and generate JUnit XML reports. This requires
+         Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
+    <drush command="test-run" haltonerror="false">
+      <param>${project.simpletest.tests}</param>
+      <option name="xml">${project.testdir}</option>
+    </drush>
   </target>
 
 <!-- ### Generate documentation -->
@@ -969,12 +960,12 @@ called from `init` target. -->
         </if>
 
         <if>
-          <isset property="drupal.RewriteBase">
+          <isset property="drupal.make.rewritebase">
           <then>
             <reflexive file="${project.drupal.dir}/.htaccess">
               <filterchain>
                 <replaceregexp>
-                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.RewriteBase}"/>
+                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.make.rewritebase}"/>
                 </replaceregexp>
               </filterchain>
             </reflexive>
@@ -1206,7 +1197,8 @@ Configuration of which installation profile and database to use in done in
       <not><available file="${project.toolsdir}/${patch.file}"/></not>
       <then>
         <httpget url="${patch.url}"
-                 dir="${project.toolsdir}"/>
+                 dir="${project.toolsdir}"
+                 proxy="${phing.httpget.proxy}/>
         <patch patchfile="${project.toolsdir}/${patch.file}"
                dir="${patch.dir}" haltonfailure="true"/>
       </then>
@@ -1264,7 +1256,8 @@ Configuration of which installation profile and database to use in done in
            <param value="${rhino.url}" />
          </php>
          <httpget url="${rhino.url}"
-                  dir="${rhino.dir}"/>
+                  dir="${rhino.dir}"
+                  proxy="${phing.httpget.proxy}/>
          <unzip file="${rhino.dir}/${rhino.zipfile}"
                 todir="${rhino.dir}" />
        </then>
