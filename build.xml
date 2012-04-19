@@ -969,6 +969,19 @@ called from `init` target. -->
           </else>
         </if>
 
+        <if>
+          <isset property="drupal.make.rewritebase">
+          <then>
+            <reflexive file="${project.drupal.dir}/.htaccess">
+              <filterchain>
+                <replaceregexp>
+                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.make.rewritebase}"/>
+                </replaceregexp>
+              </filterchain>
+            </reflexive>
+          </then>
+        </if>
+
         <!-- Set property to prevent target from being executed multiple times -->
         <property name="project.make.skip" value="true"/>
       </then>
