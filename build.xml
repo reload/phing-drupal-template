@@ -251,7 +251,7 @@ from parent `lint-js` targets. -->
     </php>
     <httpget url="${jslint4java.url}"
              dir="${jslint4java.dir}"
-             proxy="${phing.httpget.proxy}/>
+             proxy="${phing.httpget.proxy}" />
     <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
            todir="${jslint4java.dir}" />
 
@@ -695,7 +695,7 @@ Execution of this target can be skipped by setting the
     </phingcall>
 
     <if>
-      <isset property="drupal.uri">
+      <isset property="drupal.uri" />
       <then>
 
         <!-- Get a list of all available test cases -->
@@ -740,7 +740,7 @@ Execution of this target can be skipped by setting the
           </drush>
       </then>
       <else>
-        <echo msg="You must set the drupal.uri property to get simpletests working.">
+        <echo msg="You must set the drupal.uri property to get simpletests working." />
       </else>
     </if>
     
@@ -970,7 +970,7 @@ called from `init` target. -->
         </if>
 
         <if>
-          <isset property="drupal.make.rewritebase">
+          <isset property="drupal.make.rewritebase" />
           <then>
             <reflexive file="${project.drupal.dir}/.htaccess">
               <filterchain>
@@ -1208,7 +1208,7 @@ Configuration of which installation profile and database to use in done in
       <then>
         <httpget url="${patch.url}"
                  dir="${project.toolsdir}"
-                 proxy="${phing.httpget.proxy}/>
+                 proxy="${phing.httpget.proxy}" />
         <patch patchfile="${project.toolsdir}/${patch.file}"
                dir="${patch.dir}" haltonfailure="true"/>
       </then>
