@@ -100,7 +100,7 @@ Drush Make and Simpletest support has been sponsored by [DBC](http://www.dbc.dk/
 </a>
 -->
 
-<project name="phing-drupal" default="build">
+<project name="phing-drupal" default="build" phingVersion="2.4.11">
 
 <!-- ## Main targets -->
 
