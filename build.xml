@@ -532,6 +532,7 @@ statistics. -->
     <phingcall target="setup-git-repo">
       <property name="repo.dir" value="${project.toolsdir}/phing-phploc"/>
       <property name="repo.url" value="${phing.phploc.repository.url}" />
+      <property name="repo.revision" value="${phing.phploc.repository.revision}" />
     </phingcall>
     <!-- Register the custom Phing task -->
     <taskdef name="phploc" classname="PHPLocTask"
