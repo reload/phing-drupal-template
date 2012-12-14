@@ -958,7 +958,12 @@ called from `init` target. -->
                  appropriate directory. -->
             <copy todir="${project.drupal.dir}/profiles/${drupal.profile}/">
               <fileset dir="${project.basedir}">
-                <include name="${drupal.profile}.*" />
+                <exclude name="${drupal.make.dir}/**" />
+                <exclude name="build/**" />
+                <exclude name="coverage/**" />
+                <exclude name="logs/**" />
+                <exclude name="tests/**" />
+                <exclude name="tools/**" />
               </fileset>
             </copy>
           </then>
