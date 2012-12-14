@@ -1050,6 +1050,7 @@ called from `init` target. -->
       <exclude name="**/*.field_group.inc" />
       <exclude name="**/*.layouts.inc" />
       <exclude name="**/*.pages_default.inc" />
+      <exclude name="**/*.panelizer.inc" />
       <exclude name="**/*.panels_default.inc" />
       <exclude name="**/*.strongarm.inc" />
       <exclude name="**/*.views_default.inc" />
