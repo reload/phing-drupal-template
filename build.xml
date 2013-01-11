@@ -1094,6 +1094,40 @@ called from `init` target. -->
     </fileset>
 
   </target>
+  
+  <!-- ### Setup permissions
+
+Set permissions for certain files correctly after it has been built. This is
+required to support using the site after it has been built e.g. for conducting
+tests and site allow it to be rebuilt later on. 
+
+By default the built site will be owned by the Jenkins user and allow 
+others to read. We allow read, write and execute access for all to give users
+such as apache running the webserver the necessary permissions. -->
+    <target name="setup-permissions"
+            depends="setup-dirs">
+      <!-- Allow write access to files directory. -->
+      <chmod mode="0777" failonerror="false">
+        <fileset dir="${project.drupal.dir}">
+          <patternset>
+            <include name="sites/default/**/*"/>
+          </patternset>
+        </fileset>
+      </chmod>
+      <!-- If the build uses SQLite then we update permissions to the
+           database file and the directory containing the file. -->
+      <if>
+        <contains string="${drupal.db.url}" substring="sqlite"/>
+        <then>
+          <php expression="dirname(substr('${drupal.db.url}', 7));"
+               returnProperty="drupal.sqlite.dir" />
+          <php expression="basename(substr('${drupal.db.url}', 7));"
+               returnProperty="drupal.sqlite.file" />
+          <chmod file="${drupal.sqlite.dir}" mode="0777" failonerror="true"/>
+          <chmod file="${drupal.sqlite.file}" mode="0777" failonerror="true"/>
+        </then>
+      </if>
+    </target>
 
 <!-- ### Clean working environment  -->
   <target name="clean"
@@ -1139,14 +1173,9 @@ Configuration of which installation profile and database to use in done in
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
     </drush>
-    <!-- Fix permissions for the default site directory and settings. The
-         owner must be able to delete the directories during subsequent
-         builds. -->
-    <chmod file="${project.drupal.dir}/sites/default/"
-           mode="0755" failonerror="true"/>
-    <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
-           mode="0755" failonerror="true"/>
-
+    
+    <phingcall target="setup-permissions"/>
+    
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.installed" value="true"/>
   </target>
