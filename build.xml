@@ -976,19 +976,6 @@ called from `init` target. -->
           </else>
         </if>
 
-        <if>
-          <isset property="drupal.make.rewritebase" />
-          <then>
-            <reflexive file="${project.drupal.dir}/.htaccess">
-              <filterchain>
-                <replaceregexp>
-                  <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.make.rewritebase}"/>
-                </replaceregexp>
-              </filterchain>
-            </reflexive>
-          </then>
-        </if>
-
         <!-- Set property to prevent target from being executed multiple times -->
         <property name="project.make.skip" value="true"/>
       </then>
@@ -1175,6 +1162,29 @@ Configuration of which installation profile and database to use in done in
     </drush>
     
     <phingcall target="setup-permissions"/>
+    
+    <!-- Enable RewriteBase in .htaccess if the installation is to be
+exposed through Apache with virtual document root as clean urls are enabled 
+by default.
+
+Keep legacy support for drupal.make.rewritebase when this was handled as a
+part of make target.-->
+    <condition property="drupal.rewritebase"
+               value="${drupal.make.rewritebase}">
+      <isset property="drupal.make.rewritebase"/>
+    </condition>
+    <if>
+      <isset property="drupal.rewritebase" />
+      <then>
+        <reflexive file="${project.drupal.dir}/.htaccess">
+          <filterchain>
+            <replaceregexp>
+              <regexp pattern="# RewriteBase [\w/]*" replace="RewriteBase ${drupal.rewritebase}"/>
+            </replaceregexp>
+          </filterchain>
+        </reflexive>
+      </then>
+    </if>
     
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.installed" value="true"/>
