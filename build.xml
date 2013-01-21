@@ -1037,6 +1037,7 @@ called from `init` target. -->
       <exclude name="**/*.features.*" />
       <exclude name="**/*.field_group.inc" />
       <exclude name="**/*.layouts.inc" />
+      <exclude name="**/*.linkit_profiles.inc" /> 
       <exclude name="**/*.pages_default.inc" />
       <exclude name="**/*.panelizer.inc" />
       <exclude name="**/*.panels_default.inc" />
