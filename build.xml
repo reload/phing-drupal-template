@@ -1169,10 +1169,14 @@ Configuration of which installation profile and database to use in done in
 * There must not be a preexisting settings.php file -->
     <phingcall target="setup-permissions"/>
     <delete file="${project.drupal.dir}/sites/default/settings.php" verbose="true" />
+
+    <!-- Set empty arguments if not already loaded from options file. -->
+    <property name="drupal.siteinstall.arguments" value="" override="false"/>
     
     <drush command="site-install" assume="yes">
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
+      <param>${drupal.siteinstall.arguments}</param>
     </drush>
 
     <!-- Setup permissions again to override default permissions setup during
