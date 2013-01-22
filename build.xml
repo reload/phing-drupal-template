@@ -1095,8 +1095,9 @@ such as apache running the webserver the necessary permissions. -->
     <target name="setup-permissions"
             depends="setup-dirs">
       <!-- Allow write access to files directory. -->
-      <chmod mode="0777" failonerror="false">
+      <chmod mode="0777" failonerror="true">
         <fileset dir="${project.drupal.dir}">
+          <include name="sites/default" />
           <patternset>
             <include name="sites/default/**/*"/>
           </patternset>
@@ -1112,7 +1113,12 @@ such as apache running the webserver the necessary permissions. -->
           <php expression="basename(substr('${drupal.db.url}', 7));"
                returnProperty="drupal.sqlite.file" />
           <chmod file="${drupal.sqlite.dir}" mode="0777" failonerror="true"/>
-          <chmod file="${drupal.sqlite.file}" mode="0777" failonerror="true"/>
+          <if>
+            <available file="${drupal.sqlite.file}" />
+            <then>
+              <chmod file="${drupal.sqlite.file}" mode="0777" failonerror="true"/>
+            </then>
+          </if>
         </then>
       </if>
     </target>
@@ -1157,11 +1163,20 @@ Configuration of which installation profile and database to use in done in
   <target name="site-install"
           depends="init, setup-phing-drush"
           unless="project.installed">
+    <!-- Make sure we are in a correct state to support a site installtion:
+
+* File make have the correct permissions to allow file modifications
+* There must not be a preexisting settings.php file -->
+    <phingcall target="setup-permissions"/>
+    <delete file="${project.drupal.dir}/sites/default/settings.php" verbose="true" />
+    
     <drush command="site-install" assume="yes">
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
     </drush>
-    
+
+    <!-- Setup permissions again to override default permissions setup during
+         installation. -->
     <phingcall target="setup-permissions"/>
     
     <!-- Enable RewriteBase in .htaccess if the installation is to be
