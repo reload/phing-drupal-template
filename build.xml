@@ -731,13 +731,13 @@ Execution of this target can be skipped by setting the
         Groupname 2             Groupname 2
 
         into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
-        <php expression="implode(',', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
+        <php expression="implode('","', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
              returnProperty="project.simpletest.tests"/>
 
         <!-- Run the tests and generate JUnit XML reports. This requires
              Drush 4.5 or newer or [a patch](http://drupal.org/node/1109408). -->
         <drush command="test-run" uri="${drupal.uri}" root="${project.drupal.dir}" haltonerror="false">
-          <param>${project.simpletest.tests}</param>
+          <param>"${project.simpletest.tests}"</param>
           <option name="xml">${project.testdir}</option>
           </drush>
       </then>
@@ -745,7 +745,7 @@ Execution of this target can be skipped by setting the
         <echo msg="You must set the drupal.uri property to get simpletests working." />
       </else>
     </if>
-    
+
   </target>
 
 <!-- ### Generate documentation -->
@@ -1037,7 +1037,7 @@ called from `init` target. -->
       <exclude name="**/*.features.*" />
       <exclude name="**/*.field_group.inc" />
       <exclude name="**/*.layouts.inc" />
-      <exclude name="**/*.linkit_profiles.inc" /> 
+      <exclude name="**/*.linkit_profiles.inc" />
       <exclude name="**/*.pages_default.inc" />
       <exclude name="**/*.panelizer.inc" />
       <exclude name="**/*.panels_default.inc" />
@@ -1082,14 +1082,14 @@ called from `init` target. -->
     </fileset>
 
   </target>
-  
+
   <!-- ### Setup permissions
 
 Set permissions for certain files correctly after it has been built. This is
 required to support using the site after it has been built e.g. for conducting
-tests and site allow it to be rebuilt later on. 
+tests and site allow it to be rebuilt later on.
 
-By default the built site will be owned by the Jenkins user and allow 
+By default the built site will be owned by the Jenkins user and allow
 others to read. We allow read, write and execute access for all to give users
 such as apache running the webserver the necessary permissions. -->
     <target name="setup-permissions"
@@ -1172,7 +1172,7 @@ Configuration of which installation profile and database to use in done in
 
     <!-- Set empty arguments if not already loaded from options file. -->
     <property name="drupal.siteinstall.arguments" value="" override="false"/>
-    
+
     <drush command="site-install" assume="yes">
       <option name="db-url">${drupal.db.url}</option>
       <param>${drupal.profile}</param>
@@ -1182,9 +1182,9 @@ Configuration of which installation profile and database to use in done in
     <!-- Setup permissions again to override default permissions setup during
          installation. -->
     <phingcall target="setup-permissions"/>
-    
+
     <!-- Enable RewriteBase in .htaccess if the installation is to be
-exposed through Apache with virtual document root as clean urls are enabled 
+exposed through Apache with virtual document root as clean urls are enabled
 by default.
 
 Keep legacy support for drupal.make.rewritebase when this was handled as a
@@ -1205,7 +1205,7 @@ part of make target.-->
         </reflexive>
       </then>
     </if>
-    
+
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.installed" value="true"/>
   </target>
