@@ -731,7 +731,7 @@ Execution of this target can be skipped by setting the
         Groupname 2             Groupname 2
 
         into a list of comma separated unique group names `Groupname 1,Groupname 2`. -->
-        <php expression="implode('","', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
+        <php expression="implode('\",\"', array_unique(preg_split('/(\s{2,}|\r|\n)/', trim('${project.simpletest.tests}', PREG_SPLIT_NO_EMPTY))))"
              returnProperty="project.simpletest.tests"/>
 
         <!-- Run the tests and generate JUnit XML reports. This requires
