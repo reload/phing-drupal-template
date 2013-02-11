@@ -1035,9 +1035,11 @@ called from `init` target. -->
          as we cannot be held responsible for any problems here. -->
     <patternset id="generated">
       <exclude name="**/*.features.*" />
+      <exclude name="**/*.feeds_importer_default.inc" />
       <exclude name="**/*.field_group.inc" />
       <exclude name="**/*.layouts.inc" />
       <exclude name="**/*.linkit_profiles.inc" />
+      <exclude name="**/*.openlayers_maps.inc" />
       <exclude name="**/*.pages_default.inc" />
       <exclude name="**/*.panelizer.inc" />
       <exclude name="**/*.panels_default.inc" />
