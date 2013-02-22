@@ -141,8 +141,12 @@ complies with coding standards. -->
                                   phploc,
                                   phpmd,
                                   phpcpd">
+
+    <!-- Get major-version -->
+    <php expression="preg_replace('/^(\d+).*/', '$1', ${drupal.version})" returnProperty="drupal.major.version"/>
+
     <!-- Moved inside target to support properties in target name -->
-    <phingcall target="coder-review-d${drupal.version}">
+    <phingcall target="coder-review-d${drupal.major.version}">
       <!-- Run the target as if it was executed from the Drupal root
            directory. -->
       <property name="project.basedir" value="${project.drupal.dir}"/>
