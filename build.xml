@@ -1037,6 +1037,7 @@ called from `init` target. -->
       <exclude name="**/*.features.*" />
       <exclude name="**/*.feeds_importer_default.inc" />
       <exclude name="**/*.field_group.inc" />
+      <exclude name="**/*.file_default_displays.inc" />
       <exclude name="**/*.layouts.inc" />
       <exclude name="**/*.linkit_profiles.inc" />
       <exclude name="**/*.openlayers_maps.inc" />
