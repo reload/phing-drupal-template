@@ -681,6 +681,20 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
             logoutput="true" />
     </target>
 
+    <!-- ### Run behat tests on saucelabs -->
+    <target name="behat-sauce"
+           description="Run all behat tests"
+           depends="setup-dirs">
+      <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
+        <filterchain>
+          <replacetokens begintoken="%%" endtoken="%%">
+            <token key="name" value="${phing.project.name} ${phing.startTime}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}" />
+    </target>
+
   <!-- ### Run simpletests
 
 Execution of this target can be skipped by setting the
@@ -907,6 +921,12 @@ called from `init` target. -->
               value="${project.builddir}/logs" />
     <property name="project.testdir"
               value="${project.builddir}/tests" />
+    <property name="project.behatdir"
+              value="${project.basedir}/tests/behat" />
+    <property name="project.featuresdir"
+              value="${project.behatdir}/features" />
+    <property name="project.configdir"
+              value="${project.behatdir}/config" />  
   </target>
 
 <!-- ### Drush Make
