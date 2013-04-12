@@ -688,7 +688,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
     <!-- ### Run behat tests on saucelabs -->
     <target name="behat-sauce"
            description="Run all behat tests"
-           depends="setup-dirs">
+           depends="clean">
       <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
         <filterchain>
           <replacetokens begintoken="%%" endtoken="%%">
