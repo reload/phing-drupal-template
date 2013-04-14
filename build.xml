@@ -696,7 +696,7 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
           </replacetokens>
         </filterchain>
       </copy>
-      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}" 
+      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir} --tags '~@wip' " 
             passthru="true" 
             checkreturn="true" />
     </target>
