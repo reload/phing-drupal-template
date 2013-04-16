@@ -696,9 +696,8 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
           </replacetokens>
         </filterchain>
       </copy>
-      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir} --tags '~@wip' " 
-            passthru="true" 
-            checkreturn="true" />
+      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
     </target>
 
   <!-- ### Run simpletests
@@ -932,7 +931,7 @@ called from `init` target. -->
     <property name="project.featuresdir"
               value="${project.behatdir}/features" />
     <property name="project.configdir"
-              value="${project.behatdir}/config" />  
+              value="${project.behatdir}/config" />
   </target>
 
 <!-- ### Drush Make
