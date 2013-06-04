@@ -45,7 +45,7 @@ installed as follows:
 
     pear install phing/phing-2.4.12
     pear install  -a phpmd/PHP_PMD
-    pear install phpunit/phpcpd
+    pear install phpunit/phpcpd-1.3.3
     pear install phpunit/phploc-1.6.4
     pear install PHPDocumentor
     pear install PHP_CodeSniffer
