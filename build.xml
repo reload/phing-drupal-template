@@ -686,9 +686,79 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
     </target>
 
     <!-- ### Run behat tests on saucelabs -->
-    <target name="behat-sauce"
-           description="Run all behat tests"
+
+    <!-- ### Run a very simple behat test. Intended for test of the jenkins setup. -->
+    <target name="simple-behat-test"
+           description="Run a single behat test"
            depends="clean">
+      <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
+        <filterchain>
+          <replacetokens begintoken="%%" endtoken="%%">
+            <token key="name" value="Simple behat test - ${phing.project.name} ${phing.startTime}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+      <exec command="behat ${project.featuresdir}/test.feature -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+    </target>
+
+    <!-- ### Run a single ida behat test. Intended for test of the jenkins setup. -->
+    <target name="single-ida-behat-test"
+           description="Run a single ida behat test"
+           depends="clean">
+      <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
+        <filterchain>
+          <replacetokens begintoken="%%" endtoken="%%">
+            <token key="name" value="Single IDA behat test - ${phing.project.name} ${phing.startTime}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+      <exec command="behat ${project.featuresdir}/IDA/IDA1/IDA12.feature -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+    </target>
+
+    <!-- ### Run a single idamp behat test. Intended for test of the jenkins setup. -->
+    <target name="single-idamp-behat-test"
+           description="Run a single idamp behat test"
+           depends="clean">
+      <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
+        <filterchain>
+          <replacetokens begintoken="%%" endtoken="%%">
+            <token key="name" value="Single IDAMP behat test - ${phing.project.name} ${phing.startTime}" />
+          </replacetokens>
+        </filterchain>
+      </copy>
+      <exec command="behat ${project.featuresdir}/IDAMP/create/create_event_published.feature -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+    </target>
+
+
+    <!-- ### Run all behat tests on Saucelabs. If PCNTL enabled, run the tests in parallel. -->
+    <!-- ### Main behat target -->
+    <target name="behat-sauce" description="Run the tasks. Checks for parallel support in PHP.">
+      <exec command="php -m | grep pcntl" returnProperty="pcntl_enabled"/>
+      <if>
+        <equals arg1="${pcntl_enabled}" arg2="pcntl" />
+        <then>
+          <echo message="PCNTL Enabled. Running tests in parallel." />
+          <phingcall target="run-behat-tests-parallel"/>
+        </then>
+        <else>
+          <echo message="PCNTL is not enabled. Running task serially." />
+          <phingcall target="run-all-behat-tests"/>
+        </else>
+      </if>
+    </target>
+
+    <target name="run-behat-tests-parallel">
+      <parallel threadCount="9">
+        <phingcall target="run-all-behat-tests" /> 
+      </parallel>   
+    </target>
+
+    <target name="run-all-behat-tests"
+            description="Run all behat tests"
+            depends="clean">
       <copy file="${project.configdir}/sauce.yml.template" tofile="${project.configdir}/sauce.yml">
         <filterchain>
           <replacetokens begintoken="%%" endtoken="%%">
@@ -696,9 +766,38 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
           </replacetokens>
         </filterchain>
       </copy>
-      <exec command="behat ${project.featuresdir} -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+      <phingcall target="run-ida-behat-tests"/>
+      <phingcall target="run-idamp-behat-tests"/>
+    </target>
+
+    <target name="run-ida-behat-tests"
+            description="Run IDA behat tests"
+            depends="clean">
+      <exec command="behat ${project.featuresdir}/IDA/IDA1/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDA/IDA2/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
             passthru="true" />
     </target>
+
+    <target name="run-idamp-behat-tests"
+            description="Run IDAMP behat tests"
+            depends="clean">    
+      <exec command="behat ${project.featuresdir}/IDAMP/additions/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/cancel/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/change/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/create/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/search/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/signup/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+      <exec command="behat ${project.featuresdir}/IDAMP/view/ -c ${project.configdir}/sauce.yml -f junit --out ${project.testdir}"
+            passthru="true" />
+    </target>
+
 
   <!-- ### Run simpletests
 
