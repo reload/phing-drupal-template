@@ -100,8 +100,7 @@ Drush Make and Simpletest support has been sponsored by [DBC](http://www.dbc.dk/
 </a>
 -->
 
-<!-- *Do not use any later versions than 2.4.12 due to [a bug in Phing](http://www.phing.info/trac/ticket/958)*. -->
-<project name="phing-drupal" default="build" phingVersion="2.4.11">
+<project name="phing-drupal" default="build" phingVersion="2.6">
 
 <!-- ## Main targets -->
 
@@ -446,13 +445,13 @@ them in comments as well. -->
     </foreach>
 
     <loadfile property="debug.lines" file="${debug.output}" />
-    <!-- Break if debug code is detected! -->
+    
     <if>
       <not>
         <equals arg1="${debug.lines}" arg2="" />
       </not>
       <then>
-        <fail message="${debug.language} debug code detected:${line.separator}
+        <echo message="${debug.language} debug code detected:${line.separator}
                        ${debug.lines}" />
       </then>
     </if>
@@ -1171,6 +1170,10 @@ called from `init` target. -->
       <exclude name="**/*.strongarm.inc" />
       <exclude name="**/*.views_default.inc" />
     </patternset>
+	
+	<patternset id="coderreview">
+	  <exclude name="**/coder/**/*.*" />
+	</patternset>
 
     <!-- Define file sets for future reference -->
 
@@ -1184,6 +1187,7 @@ called from `init` target. -->
       <patternset refid="php"/>
       <patternset refid="contrib"/>
       <patternset refid="generated"/>
+	  <patternset refid="coderreview"/>
     </fileset>
 
     <!-- All Javascript files -->
