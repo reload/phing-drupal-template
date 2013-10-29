@@ -565,7 +565,7 @@ specific prefix. -->
     <!-- Download and enable the Coder Review module -->
     <phingcall target="enable-module">
       <property name="project" value="coder"/>
-      <property name="project.version" value="7.x-1.0"/>
+      <property name="project.version" value="7.x-2.0"/>
       <property name="module" value="coder_review"/>
     </phingcall>
 
@@ -618,11 +618,11 @@ No need to run `init` here. This target should only be called from parent
 
     <!-- Execute coder review and output results in XML format-->
     <drush command="${coder.review.command}" assume="yes"
-           pipe="yes" returnProperty="xml">
-      <param>no-empty</param>
-      <param>checkstyle</param>
-      <param>minor</param>
-      <param>${coder.review.type}</param>
+           haltonerror="false" pipe="yes" returnProperty="xml">
+      <param>--no-empty</param>
+      <param>--checkstyle</param>
+      <param>--minor</param>
+      <param>--${coder.review.type}</param>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${project.code.projects}</param>
       <!-- Review additional modules which do not match the prefix -->
