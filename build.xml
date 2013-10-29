@@ -618,7 +618,7 @@ No need to run `init` here. This target should only be called from parent
 
     <!-- Execute coder review and output results in XML format-->
     <drush command="${coder.review.command}" assume="yes"
-           pipe="yes" returnProperty="xml">
+           haltonerror="false" pipe="yes" returnProperty="xml">
       <param>--no-empty</param>
       <param>--checkstyle</param>
       <param>--minor</param>
