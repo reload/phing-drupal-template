@@ -556,7 +556,7 @@ specific prefix. -->
 
   <target name="coder-review-d7"
           description="Review code using Drupal 7 Coder module"
-          depends="init, clean, site-install">
+          depends="init, clean, deploy">
     <!-- Setup properties for running Coder Review.
          For some reason these properties are not passed correctly through to
          subtargets when defining them within the phingcall. -->
@@ -686,7 +686,7 @@ Execution of this target can be skipped by setting the
 -->
   <target name="simpletest"
           description="Run all unit tests"
-          depends="init, setup-phing-drush, site-install"
+          depends="init, setup-phing-drush, deploy"
           unless="project.simpletest.skip">
     <!-- Enable simpletest module. If using Drupal 6 the module will be
          downloaded as well. -->
@@ -1118,17 +1118,50 @@ called from `init` target. -->
     <property name="project.cleaned" value="true"/>
   </target>
 
-<!-- ### Install a Drupal site
+<!-- ### Deploy a Drupal site
 
-This initializes a Drupal site using a installation profile.
+This will install a Drupal site for a given installation profile.
 
-Configuration of which installation profile and database to use in done in
+Configuration of which installation profile and how to deploy are in done in
 `build.properties`. -->
-  <target name="site-install"
+  <target name="deploy"
           depends="init, setup-phing-drush"
           unless="project.installed">
+
+    <if>
+      <equals arg1="${deploy.type}" arg2="drush"/>
+      <then>
+        <phingcall target="deploy-drush" />
+      </then>
+
+      <elseif>
+        <equals arg1="${deploy.type}" arg2="aegir"/>
+        <then>
+          <phingcall target="deploy-aegir" />
+        </then>
+      </elseif>
+
+      <else>
+        <fail msg="Unknown deploy.type = ${deploy.type}" />
+      </else>
+    </if>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.installed" value="true"/>
+  </target>
+
+<!-- ### (deprecated) Deploy a Drupal site
+
+This is an alias for 'deploy' provided for backward compatibility.
+
+Please use 'deploy' instead! -->
+  <target name="site-install" depends="deploy" hidden="true" />
+
+  <target name="deploy-drush"
+          depends="init, setup-phing-drush"
+          unless="project.deployed.drush">
     <drush command="site-install" assume="yes">
-      <option name="db-url">${drupal.db.url}</option>
+      <option name="db-url">${deploy.drush.db}</option>
       <param>${drupal.profile}</param>
     </drush>
     <!-- Fix permissions for the default site directory and settings. The
@@ -1140,7 +1173,7 @@ Configuration of which installation profile and database to use in done in
            mode="0755" failonerror="true"/>
 
     <!-- Set property to prevent target from being executed multiple times -->
-    <property name="project.installed" value="true"/>
+    <property name="project.deployed.drush" value="true"/>
   </target>
 
   <!-- ### Download and enable a project/module -->
