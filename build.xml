@@ -1157,6 +1157,11 @@ This is an alias for 'deploy' provided for backward compatibility.
 Please use 'deploy' instead! -->
   <target name="site-install" depends="deploy" hidden="true" />
 
+<!-- ### Deploy a Drupal site via Drush
+
+This will install the Drupal site via 'drush site-install'.
+
+It will use the database credentials specified in `build.properties`. -->
   <target name="deploy-drush"
           depends="init, setup-phing-drush"
           unless="project.deployed.drush">
@@ -1174,6 +1179,87 @@ Please use 'deploy' instead! -->
 
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.deployed.drush" value="true"/>
+  </target>
+
+<!-- ### Deploy a Drupal site via Aegir
+
+This will install the Drupal site via Aegir.
+
+It will use the platform and site names specified in `build.properties`. -->
+  <target name="deploy-aegir"
+          depends="init, setup-phing-drush, aegir-create-platform"
+          unless="project.deployed.aegir">
+    
+    <if>
+      <not>
+        <available file="~/.drush/platform_${deploy.aegir.site}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" root="">
+          <param>@${deploy.aegir.site}</param>
+          <option name="context_type">site</option>
+          <option name="uri">${deploy.aegir.site}</option>
+          <option name="platform">@platform_${deploy.aegir.platform}</option>
+          <option name="server">@server_${deploy.aegir.server}</option>
+          <option name="db_server">@server_${deploy.aegir.server}</option>
+          <option name="profile">${drupal.profile}</option>
+          <option name="client_name">admin</option>
+        </drush>
+
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@${deploy.aegir.site} provision-install" root="">
+        </drush>
+
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@hostmaster hosting-task" root="">
+          <param>@platform_${deploy.aegir.platform}</param>
+          <param>verify</param>
+        </drush>
+
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@hostmaster hosting-dispatch" root="">
+        </drush>
+
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@hostmaster hosting-task" root="">
+          <param>@${deploy.aegir.site}</param>
+          <param>verify</param>
+        </drush>
+      </then>
+    </if>
+     
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.deployed.aegir" value="true"/>
+  </target>
+
+<!-- ### Create an Aegir platform
+
+This will register the Drupal site with Aegir as a platform.
+
+It will use the platform name specified in `build.properties`. -->
+  <target name="aegir-create-platform"
+          depends="init, setup-phing-drush">
+    <if>
+      <not>
+        <available file="~/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" assume="yes" root="${project.drupal.dir}">
+          <param>@platform_${deploy.aegir.platform}</param>
+          <option name="context_type">platform</option>
+        </drush>
+        
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@hostmaster hosting-import" root="">
+          <param>@platform_${deploy.aegir.platform}</param>
+        </drush>
+
+        <!-- TODO: drush should support an alias="..." attribute! -->
+        <drush command="@hostmaster hosting-dispatch" root="">
+        </drush>
+      </then>
+    </if>
   </target>
 
   <!-- ### Download and enable a project/module -->
