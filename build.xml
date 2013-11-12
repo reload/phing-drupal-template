@@ -1192,11 +1192,10 @@ It will use the platform and site names specified in `build.properties`. -->
     
     <if>
       <not>
-        <available file="~/.drush/platform_${deploy.aegir.site}.alias.drushrc.php"/>
+        <available file="${user.home}/.drush/${deploy.aegir.site}.alias.drushrc.php"/>
       </not>
       <then>
-        <drush command="provision-save" root="">
-          <param>@${deploy.aegir.site}</param>
+        <drush command="provision-save" root="" alias="@${deploy.aegir.site}">
           <option name="context_type">site</option>
           <option name="uri">${deploy.aegir.site}</option>
           <option name="platform">@platform_${deploy.aegir.platform}</option>
@@ -1206,22 +1205,16 @@ It will use the platform and site names specified in `build.properties`. -->
           <option name="client_name">admin</option>
         </drush>
 
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@${deploy.aegir.site} provision-install" root="">
-        </drush>
+        <drush command="provision-install" root="" alias="@${deploy.aegir.site}" />
 
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@hostmaster hosting-task" root="">
+        <drush command="hosting-task" root="" alias="@hostmaster">
           <param>@platform_${deploy.aegir.platform}</param>
           <param>verify</param>
         </drush>
 
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@hostmaster hosting-dispatch" root="">
-        </drush>
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
 
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@hostmaster hosting-task" root="">
+        <drush command="hosting-task" root="" alias="@hostmaster">
           <param>@${deploy.aegir.site}</param>
           <param>verify</param>
         </drush>
@@ -1242,22 +1235,18 @@ It will use the platform name specified in `build.properties`. -->
           depends="init, setup-phing-drush">
     <if>
       <not>
-        <available file="~/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
+        <available file="${user.home}/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
       </not>
       <then>
-        <drush command="provision-save" assume="yes" root="${project.drupal.dir}">
-          <param>@platform_${deploy.aegir.platform}</param>
+        <drush command="provision-save" root="${project.drupal.dir}" alias="@platform_${deploy.aegir.platform}">
           <option name="context_type">platform</option>
         </drush>
         
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@hostmaster hosting-import" root="">
+        <drush command="hosting-import" root="" alias="@hostmaster">
           <param>@platform_${deploy.aegir.platform}</param>
         </drush>
 
-        <!-- TODO: drush should support an alias="..." attribute! -->
-        <drush command="@hostmaster hosting-dispatch" root="">
-        </drush>
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
       </then>
     </if>
   </target>
