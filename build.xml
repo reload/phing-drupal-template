@@ -565,7 +565,7 @@ specific prefix. -->
     <!-- Download and enable the Coder Review module -->
     <phingcall target="enable-module">
       <property name="project" value="coder"/>
-      <property name="project.version" value="7.x-1.0"/>
+      <property name="project.version" value="7.x-2.0"/>
       <property name="module" value="coder_review"/>
     </phingcall>
 
