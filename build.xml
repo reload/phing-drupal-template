@@ -619,10 +619,10 @@ No need to run `init` here. This target should only be called from parent
     <!-- Execute coder review and output results in XML format-->
     <drush command="${coder.review.command}" assume="yes"
            pipe="yes" returnProperty="xml">
-      <param>no-empty</param>
-      <param>checkstyle</param>
-      <param>minor</param>
-      <param>${coder.review.type}</param>
+      <option name="no-empty"/>
+      <option name="checkstyle"/>
+      <option name="minor"/>
+      <option name="${coder.review.type}"/>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${project.code.projects}</param>
       <!-- Review additional modules which do not match the prefix -->
@@ -1137,7 +1137,9 @@ Configuration of which installation profile and how to deploy are in done in
       <elseif>
         <equals arg1="${deploy.type}" arg2="aegir"/>
         <then>
-          <phingcall target="deploy-aegir" />
+          <phingcall target="deploy-aegir">
+            <property name="drush.bin" value="${deploy.aegir.drush}"/>
+          </phingcall>
 
           <!-- Now that the site is installed, we need to set drush.uri so that drush
                commands against the site succeeed. 
