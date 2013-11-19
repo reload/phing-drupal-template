@@ -556,7 +556,7 @@ specific prefix. -->
 
   <target name="coder-review-d7"
           description="Review code using Drupal 7 Coder module"
-          depends="init, clean, site-install">
+          depends="init, clean, deploy">
     <!-- Setup properties for running Coder Review.
          For some reason these properties are not passed correctly through to
          subtargets when defining them within the phingcall. -->
@@ -565,7 +565,7 @@ specific prefix. -->
     <!-- Download and enable the Coder Review module -->
     <phingcall target="enable-module">
       <property name="project" value="coder"/>
-      <property name="project.version" value="7.x-1.0"/>
+      <property name="project.version" value="7.x-2.0"/>
       <property name="module" value="coder_review"/>
     </phingcall>
 
@@ -582,7 +582,7 @@ coder-review-d7.
 No need to run `init` here. This target should only be called from parent
 `coder-review-*` targets. -->
   <target name="coder-review"
-          depends="setup-phing-drush">
+          depends="setup-phing-drush, deploy">
     <!-- Get a list of modules and themes matching the project prefix.
          These are the ones we are going to review. -->
     <drush command="pm-list" pipe="true" returnProperty="projects" />
@@ -619,10 +619,10 @@ No need to run `init` here. This target should only be called from parent
     <!-- Execute coder review and output results in XML format-->
     <drush command="${coder.review.command}" assume="yes"
            pipe="yes" returnProperty="xml">
-      <param>no-empty</param>
-      <param>checkstyle</param>
-      <param>minor</param>
-      <param>${coder.review.type}</param>
+      <option name="no-empty"/>
+      <option name="checkstyle"/>
+      <option name="minor"/>
+      <option name="${coder.review.type}"/>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${project.code.projects}</param>
       <!-- Review additional modules which do not match the prefix -->
@@ -686,7 +686,7 @@ Execution of this target can be skipped by setting the
 -->
   <target name="simpletest"
           description="Run all unit tests"
-          depends="init, setup-phing-drush, site-install"
+          depends="init, setup-phing-drush, deploy"
           unless="project.simpletest.skip">
     <!-- Enable simpletest module. If using Drupal 6 the module will be
          downloaded as well. -->
@@ -1118,17 +1118,67 @@ called from `init` target. -->
     <property name="project.cleaned" value="true"/>
   </target>
 
-<!-- ### Install a Drupal site
+<!-- ### Deploy a Drupal site
 
-This initializes a Drupal site using a installation profile.
+This will install a Drupal site for a given installation profile.
 
-Configuration of which installation profile and database to use in done in
+Configuration of which installation profile and how to deploy are in done in
 `build.properties`. -->
-  <target name="site-install"
+  <target name="deploy"
           depends="init, setup-phing-drush"
           unless="project.installed">
+
+    <if>
+      <equals arg1="${deploy.type}" arg2="drush"/>
+      <then>
+        <phingcall target="deploy-drush" />
+      </then>
+
+      <elseif>
+        <equals arg1="${deploy.type}" arg2="aegir"/>
+        <then>
+          <phingcall target="deploy-aegir">
+            <property name="drush.bin" value="${deploy.aegir.drush}"/>
+          </phingcall>
+
+          <!-- Now that the site is installed, we need to set drush.uri so that drush
+               commands against the site succeeed. 
+
+               TODO: this really should set drush.alias so that more complex Aegir
+               configurations will work, but that isn't yet supported:
+
+                 https://drupal.org/node/2139219
+            -->
+          <property name="drush.uri" value="${drupal.uri}"/>
+        </then>
+      </elseif>
+
+      <else>
+        <fail msg="Unknown deploy.type = ${deploy.type}" />
+      </else>
+    </if>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.installed" value="true"/>
+  </target>
+
+<!-- ### (deprecated) Deploy a Drupal site
+
+This is an alias for 'deploy' provided for backward compatibility.
+
+Please use 'deploy' instead! -->
+  <target name="site-install" depends="deploy" hidden="true" />
+
+<!-- ### Deploy a Drupal site via Drush
+
+This will install the Drupal site via 'drush site-install'.
+
+It will use the database credentials specified in `build.properties`. -->
+  <target name="deploy-drush"
+          depends="init, setup-phing-drush"
+          unless="project.deployed.drush">
     <drush command="site-install" assume="yes">
-      <option name="db-url">${drupal.db.url}</option>
+      <option name="db-url">${deploy.drush.db}</option>
       <param>${drupal.profile}</param>
     </drush>
     <!-- Fix permissions for the default site directory and settings. The
@@ -1140,12 +1190,81 @@ Configuration of which installation profile and database to use in done in
            mode="0755" failonerror="true"/>
 
     <!-- Set property to prevent target from being executed multiple times -->
-    <property name="project.installed" value="true"/>
+    <property name="project.deployed.drush" value="true"/>
+  </target>
+
+<!-- ### Deploy a Drupal site via Aegir
+
+This will install the Drupal site via Aegir.
+
+It will use the platform and site names specified in `build.properties`. -->
+  <target name="deploy-aegir"
+          depends="init, setup-phing-drush, aegir-create-platform"
+          unless="project.deployed.aegir">
+    
+    <if>
+      <not>
+        <available file="${user.home}/.drush/${deploy.aegir.site}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" root="" alias="@${deploy.aegir.site}">
+          <option name="context_type">site</option>
+          <option name="uri">${deploy.aegir.site}</option>
+          <option name="platform">@platform_${deploy.aegir.platform}</option>
+          <option name="server">@server_${deploy.aegir.server}</option>
+          <option name="db_server">@server_${deploy.aegir.server}</option>
+          <option name="profile">${drupal.profile}</option>
+          <option name="client_name">admin</option>
+        </drush>
+
+        <drush command="provision-install" root="" alias="@${deploy.aegir.site}" />
+
+        <drush command="hosting-task" root="" alias="@hostmaster">
+          <param>@platform_${deploy.aegir.platform}</param>
+          <param>verify</param>
+        </drush>
+
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
+
+        <drush command="hosting-task" root="" alias="@hostmaster">
+          <param>@${deploy.aegir.site}</param>
+          <param>verify</param>
+        </drush>
+      </then>
+    </if>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.deployed.aegir" value="true"/>
+  </target>
+
+<!-- ### Create an Aegir platform
+
+This will register the Drupal site with Aegir as a platform.
+
+It will use the platform name specified in `build.properties`. -->
+  <target name="aegir-create-platform"
+          depends="init, setup-phing-drush">
+    <if>
+      <not>
+        <available file="${user.home}/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" root="${project.drupal.dir}" alias="@platform_${deploy.aegir.platform}">
+          <option name="context_type">platform</option>
+        </drush>
+        
+        <drush command="hosting-import" root="" alias="@hostmaster">
+          <param>@platform_${deploy.aegir.platform}</param>
+        </drush>
+
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
+      </then>
+    </if>
   </target>
 
   <!-- ### Download and enable a project/module -->
   <target name="enable-module"
-          depends="setup-phing-drush">
+          depends="setup-phing-drush, deploy">
     <!-- If project is not set then we assume that the module name is also
          the project name. -->
     <property name="project" value="${module}" override="no"/>
